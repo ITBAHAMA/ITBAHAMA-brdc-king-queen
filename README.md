@@ -21,9 +21,10 @@ This repo is the version-controlled source and backup.
 | File | What it is |
 | --- | --- |
 | `index.src.html` | Page source with a `__LOGO__` placeholder (edit this one) |
-| `index.html` | Built page with the logo embedded, exactly as published |
+| `artifact.html` | Built page content, exactly as published to claude.ai |
+| `index.html` | The same page as a full HTML document, for opening in a browser |
 | `assets/bahama-logo.jpg` | Original BAHAMA logo |
-| `build.py` | Rebuilds `index.html` from the source and logo |
+| `build.py` | Rebuilds `artifact.html` and `index.html` from the source and logo |
 
 Rebuild after editing the source:
 
@@ -31,7 +32,7 @@ Rebuild after editing the source:
 python3 build.py
 ```
 
-To publish a change, ask Claude to update the artifact at the link above with the new `index.html`.
+To publish a change, ask Claude to update the artifact at the link above with the new `artifact.html`.
 
 ## Who can do what
 
