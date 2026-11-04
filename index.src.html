@@ -1,0 +1,835 @@
+<title>BRDC King &amp; Queen</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Jost:wght@400;500;600&display=swap">
+<style>
+/* Layout: masthead with the BAHAMA mark → one big question → a ballot of two facing columns (King | Queen)
+   → organizer desk for editors; fixed cast bar at the bottom; full-screen stage view for the reveal.
+   A single committed gala look: forest-black ground, brand green, crown gold. */
+:root{
+  color-scheme: dark;
+  --ink:#090c08;
+  --panel:#10150e;
+  --panel-2:#161d13;
+  --line:#263022;
+  --line-2:#3a4733;
+  --text:#eef1e7;
+  --muted:#9ba691;
+  --green:#2c6e12;
+  --green-hi:#8cc762;
+  --gold:#dcb563;
+  --gold-ink:#1d1606;
+  --gold-glow:rgba(220,181,99,.16);
+  --danger:#e8806a;
+  --display:"Bodoni Moda", Didot, "Bodoni 72", Georgia, serif;
+  --sans:"Jost", "Century Gothic", Futura, "Avenir Next", system-ui, sans-serif;
+  --r:14px;
+}
+html{background:var(--ink)}
+body{
+  background:
+    radial-gradient(900px 420px at 85% -120px, var(--gold-glow), transparent 70%),
+    radial-gradient(700px 380px at 0% 0%, rgba(44,110,18,.22), transparent 70%),
+    var(--ink);
+  background-repeat:no-repeat;
+  color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+.page{
+  max-width:1180px;margin:0 auto;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));
+  padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:20px 72px;
+  display:flex;flex-direction:column;gap:40px;
+}
+body.has-bar .page{padding-bottom:150px}
+h1,h2,h3{text-wrap:balance}
+.eyebrow{font-size:.75rem;letter-spacing:.16em;text-transform:uppercase;color:var(--green-hi);font-weight:500}
+.muted{color:var(--muted)}
+svg.crown{width:1em;height:1em;flex:none}
+
+/* masthead */
+.mast{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{height:52px;width:auto;mix-blend-mode:screen;display:block}
+.pill{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line-2);border-radius:999px;padding:6px 14px;font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;font-weight:500;color:var(--muted);background:var(--panel)}
+.pill i{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.pill[data-s="open"]{color:var(--green-hi);border-color:rgba(140,199,98,.4)}
+.pill[data-s="open"] i{background:var(--green-hi);animation:pulse 1.6s ease-in-out infinite}
+.pill[data-s="revealed"]{color:var(--gold);border-color:rgba(220,181,99,.45)}
+.pill[data-s="revealed"] i{background:var(--gold)}
+@keyframes pulse{50%{opacity:.35}}
+
+/* hero */
+.hero{display:grid;gap:14px;max-width:820px}
+.hero h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(2.6rem, 7.2vw, 5.2rem);line-height:.98;margin:0;letter-spacing:-.01em}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p{margin:0;max-width:60ch;color:var(--muted);font-size:1.05rem}
+
+/* notice */
+.notice{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px}
+.notice svg{width:22px;height:22px;color:var(--gold);flex:none;margin-top:2px}
+.notice h3{margin:0 0 2px;font-size:1.05rem;font-weight:600}
+.notice p{margin:0;color:var(--muted)}
+.notice.voted{border-color:rgba(220,181,99,.45);background:linear-gradient(90deg,var(--gold-glow),transparent 60%),var(--panel)}
+
+/* ballot */
+.ballot{display:grid;grid-template-columns:1fr;gap:44px}
+@media (min-width:900px){.ballot{grid-template-columns:1fr 1fr;gap:48px}}
+.col{min-width:0}
+.col-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:18px}
+.col-head h2{font-family:var(--display);font-weight:500;font-size:clamp(1.7rem,3.2vw,2.3rem);margin:0;display:flex;gap:12px;align-items:center;line-height:1.1}
+.col-head h2 .crown{color:var(--gold);font-size:.8em}
+.col-head .count{font-size:.8rem;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px}
+@media (max-width:440px){.grid{grid-template-columns:1fr 1fr;gap:10px}}
+.empty{border:1px dashed var(--line-2);border-radius:var(--r);padding:28px 20px;color:var(--muted);text-align:center}
+
+.nom{position:relative;display:grid;gap:10px;align-content:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 10px 14px;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s, transform .15s, box-shadow .15s;min-width:0}
+.nom:hover:not(:disabled){border-color:var(--line-2);transform:translateY(-2px)}
+.nom:disabled{cursor:default}
+.nom.dim{opacity:.5}
+.nom[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 14px 34px -16px rgba(220,181,99,.65);opacity:1}
+.ph{aspect-ratio:4/5;max-width:100%;border-radius:10px;overflow:hidden;background:linear-gradient(160deg,var(--panel-2),#0b1109);display:grid;place-items:center}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.mono{font-family:var(--display);font-style:italic;font-size:2.6rem;color:var(--green-hi);letter-spacing:.02em}
+.nom-name{font-weight:600;font-size:1.02rem;line-height:1.25;padding:0 4px;overflow-wrap:anywhere}
+.unit{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--green-hi);padding:0 4px;overflow-wrap:anywhere}
+.seal{position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:5px;background:var(--gold);color:var(--gold-ink);border-radius:999px;padding:4px 10px 4px 8px;font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+
+/* cast bar */
+.castbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:rgba(9,12,8,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);
+  padding-top:12px;padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+.castbar-in{max-width:1180px;margin:0 auto;display:flex;gap:10px 24px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+.picks{display:flex;gap:6px 22px;flex-wrap:wrap;min-width:0}
+.picks div{min-width:0}
+.picks small{display:block;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.picks b{font-weight:600;overflow-wrap:anywhere}
+.picks b.none{color:var(--muted);font-weight:400}
+
+/* buttons & fields */
+.btn{font:inherit;font-weight:600;font-size:.95rem;border-radius:999px;padding:11px 22px;border:1px solid var(--line-2);background:var(--panel-2);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:filter .15s}
+.btn:hover:not(:disabled){filter:brightness(1.12)}
+.btn-gold{background:var(--gold);border-color:var(--gold);color:var(--gold-ink)}
+.btn-green{background:var(--green);border-color:var(--green);color:#fff}
+.btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
+.btn-sm{padding:7px 14px;font-size:.82rem}
+.btn:disabled{opacity:.42;cursor:not-allowed}
+.btn:focus-visible,.nom:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.f{display:grid;gap:6px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
+input[type=text],select{font:inherit;font-size:1rem;letter-spacing:normal;text-transform:none;color:var(--text);background:var(--ink);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input[type=file]{font:inherit;font-size:.9rem;color:var(--muted);text-transform:none;letter-spacing:normal;max-width:100%}
+
+/* results */
+.results{display:grid;gap:22px}
+.results-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.results-head h2{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(2rem,4.6vw,3.2rem);margin:0;line-height:1.05}
+.winners{display:grid;grid-template-columns:1fr;gap:20px}
+@media (min-width:760px){.winners{grid-template-columns:1fr 1fr}}
+.win{border:1px solid rgba(220,181,99,.45);border-radius:20px;padding:22px;background:radial-gradient(420px 200px at 80% 0%,var(--gold-glow),transparent 70%),var(--panel);display:grid;gap:18px;min-width:0}
+.win-top{display:grid;grid-template-columns:116px 1fr;gap:18px;align-items:center}
+.win .ph{border-radius:12px;box-shadow:0 0 0 2px var(--gold)}
+.win-title{display:flex;align-items:center;gap:8px;color:var(--gold);font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.win-name{font-family:var(--display);font-size:clamp(1.6rem,3.4vw,2.3rem);font-weight:600;line-height:1.08;margin:4px 0 2px;overflow-wrap:anywhere}
+.win-votes{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.92rem}
+.runners{list-style:none;margin:0;padding:14px 0 0;border-top:1px solid var(--line);display:grid;gap:8px}
+.runners li{display:flex;justify-content:space-between;gap:12px;font-size:.92rem}
+.runners li span:last-child{font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.tie{font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border:1px solid rgba(220,181,99,.5);border-radius:999px;padding:2px 10px;justify-self:start}
+
+/* organizer desk */
+.desk{border-top:1px solid var(--line);padding-top:32px;display:grid;gap:20px}
+.desk-head h2{font-family:var(--display);font-weight:500;font-size:1.9rem;margin:2px 0 0}
+.desk-grid{display:grid;grid-template-columns:1fr;gap:18px}
+@media (min-width:900px){.desk-grid{grid-template-columns:1.1fr .9fr}}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;display:grid;gap:16px;align-content:start;min-width:0}
+.box h3{margin:0;font-size:1.05rem;font-weight:600}
+.box .sub{margin:-10px 0 0;color:var(--muted);font-size:.9rem}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:6px;counter-reset:s}
+.steps li{counter-increment:s;border-top:3px solid var(--line-2);padding-top:8px;font-size:.8rem;color:var(--muted);min-width:0}
+.steps li::before{content:counter(s) " ";font-variant-numeric:tabular-nums;color:var(--muted)}
+.steps li.done{border-color:var(--green)}
+.steps li.now{border-color:var(--gold);color:var(--text);font-weight:600}
+.steps li.now::before{color:var(--gold)}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;clip:rect(0 0 0 0)}
+.vh:focus-visible + .btn{outline:2px solid var(--gold);outline-offset:2px}
+label.btn{cursor:pointer}
+.snap{display:flex;gap:14px;align-items:center;flex-wrap:wrap;text-transform:none;letter-spacing:normal;font-size:.9rem}
+.snap-prev{width:104px;max-width:100%;aspect-ratio:4/5;border-radius:10px;overflow:hidden;border:1px dashed var(--line-2);display:grid;place-items:center;background:var(--ink);position:relative;color:var(--muted)}
+.snap-prev.has{border-style:solid;border-color:var(--gold)}
+.snap-prev img{width:100%;height:100%;object-fit:cover;display:block}
+.snap-prev svg{width:30px;height:30px}
+.snap-prev.busy::after,.nl .ph.busy::after{content:"";position:absolute;inset:0;background:rgba(9,12,8,.55) linear-gradient(90deg,transparent,rgba(220,181,99,.35),transparent) 0 0/200% 100%;animation:shimmer 1s linear infinite}
+@keyframes shimmer{to{background-position:-200% 0}}
+.snap-ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-width:0;flex:1 1 200px}
+.snap-ctl small{flex-basis:100%;color:var(--muted)}
+.nl .ph{position:relative}
+.nl .row-act{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.turnout{display:flex;align-items:baseline;gap:10px}
+.turnout b{font-family:var(--display);font-size:3rem;line-height:1;font-variant-numeric:tabular-nums}
+.tally{display:grid;gap:14px}
+.tally h4{margin:0 0 6px;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:500}
+.bar-row{display:grid;grid-template-columns:minmax(0,9rem) 1fr 2.5rem;gap:10px;align-items:center;font-size:.88rem;padding:3px 0}
+.bar-row span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:8px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green-hi);border-radius:99px}
+.bar-row.lead .bar i{background:var(--gold)}
+.bar-row span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid .wide{grid-column:1/-1}
+@media (max-width:520px){.form-grid{grid-template-columns:1fr}}
+.nl{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.nl li{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:10px;min-width:0}
+.nl .ph{width:44px;border-radius:8px}
+.nl .mono{font-size:1.1rem}
+.nl .meta{min-width:0}
+.nl .meta b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nl .meta small{color:var(--muted);font-size:.78rem}
+.inline{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+.inline label{flex:1 1 220px}
+.danger-zone{border-color:rgba(232,128,106,.35)}
+
+/* overlays */
+.modal{position:fixed;inset:0;z-index:40;background:rgba(4,6,3,.78);display:grid;place-items:center;padding:max(16px, env(safe-area-inset-left, 0px))}
+.modal-card{width:min(440px,100%);background:var(--panel);border:1px solid var(--line-2);border-radius:20px;padding:24px;display:grid;gap:16px}
+.modal-card h3{font-family:var(--display);font-size:1.7rem;font-weight:500;margin:0}
+.modal-picks{display:grid;gap:10px}
+.modal-picks div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:8px}
+.modal-picks span{color:var(--muted);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase}
+.modal-picks b{text-align:right;overflow-wrap:anywhere}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(110px + env(safe-area-inset-bottom, 0px));z-index:60;background:var(--text);color:var(--ink);border-radius:999px;padding:10px 20px;font-weight:500;max-width:calc(100% - 32px);text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+
+/* stage */
+.stage{position:fixed;inset:0;z-index:50;overflow:auto;
+  background:radial-gradient(1000px 500px at 50% -10%,rgba(220,181,99,.18),transparent 70%),radial-gradient(800px 500px at 50% 120%,rgba(44,110,18,.28),transparent 70%),var(--ink);
+  padding:calc(28px + env(safe-area-inset-top, 0px)) max(24px, env(safe-area-inset-right, 0px)) calc(28px + env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-left, 0px));
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;text-align:center}
+.stage-x{position:fixed;top:calc(14px + env(safe-area-inset-top, 0px));right:calc(14px + env(safe-area-inset-right, 0px))}
+.stage .logo{height:clamp(56px,9vh,96px)}
+.stage h2{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(2.4rem,7vw,5.6rem);line-height:1;margin:0}
+.stage .big{font-family:var(--display);font-size:clamp(5rem,18vw,12rem);line-height:.9;font-variant-numeric:tabular-nums;color:var(--gold)}
+.stage .lede{font-size:clamp(1rem,2.2vw,1.4rem);color:var(--muted);margin:0;max-width:40ch}
+.stage-w{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:clamp(20px,5vw,72px);width:min(1100px,100%)}
+.sw{display:grid;gap:12px;justify-items:center}
+.sw .ph{width:min(300px,70vw);border-radius:18px;box-shadow:0 0 0 3px var(--gold),0 30px 80px -20px rgba(220,181,99,.55)}
+.sw .mono{font-size:5rem}
+.sw .t{color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-size:.9rem;font-weight:600;display:flex;gap:8px;align-items:center}
+.sw .n{font-family:var(--display);font-weight:600;font-size:clamp(2rem,4.5vw,3.4rem);line-height:1.05;overflow-wrap:anywhere}
+.sw .u{color:var(--green-hi);letter-spacing:.12em;text-transform:uppercase;font-size:.85rem}
+.anim .sw{animation:rise .9s cubic-bezier(.2,.8,.2,1) both}
+.anim .sw:nth-child(2){animation-delay:.35s}
+@keyframes rise{from{opacity:0;transform:translateY(40px) scale(.94)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+
+<div class="page">
+  <header class="mast">
+    <img class="logo" src="__LOGO__" alt="Bahama Realty and Development Corporation">
+    <span class="pill" id="pill" data-s="setup"><i></i><span id="pill-t">Opening soon</span></span>
+  </header>
+
+  <section class="hero">
+    <div class="eyebrow" id="ev-eyebrow">BRDC Year-End Party 2026</div>
+    <h1>Who wears the <em>crown</em> tonight?</h1>
+    <p>Vote for one King and one Queen of the night. One ballot per person, and other guests can't see how you voted.</p>
+  </section>
+
+  <div id="notice"></div>
+  <section id="results" class="results" hidden></section>
+  <section id="ballot" class="ballot" aria-label="Ballot"></section>
+
+  <section id="desk" class="desk" hidden>
+    <div class="desk-head">
+      <div class="eyebrow">Only organizers see this</div>
+      <h2>Organizer desk</h2>
+    </div>
+    <div class="desk-grid">
+      <div style="display:grid;gap:18px;align-content:start;min-width:0">
+        <div class="box">
+          <h3>Voting status</h3>
+          <ol class="steps" id="steps"></ol>
+          <div class="actions" id="st-actions"></div>
+        </div>
+        <div class="box">
+          <h3>Nominees</h3>
+          <form id="add-form" class="form-grid" autocomplete="off">
+            <label class="f wide">Name<input type="text" id="nm-name" maxlength="60" required placeholder="e.g. Juan dela Cruz"></label>
+            <label class="f">Category
+              <select id="nm-cat"><option value="king">King</option><option value="queen">Queen</option></select>
+            </label>
+            <label class="f">Business unit<select id="nm-unit"></select></label>
+            <div class="f wide" id="nm-photo-wrap" hidden>
+              <span>Photo (optional)</span>
+              <div class="snap">
+                <div class="snap-prev" id="nm-prev"></div>
+                <div class="snap-ctl">
+                  <input type="file" id="nm-cam" class="vh" accept="image/*" capture="environment">
+                  <label class="btn btn-sm btn-gold" for="nm-cam">Take photo</label>
+                  <input type="file" id="nm-pick" class="vh" accept="image/*">
+                  <label class="btn btn-sm" for="nm-pick">Choose from gallery</label>
+                  <button type="button" class="btn btn-sm" id="nm-clear" hidden>Remove photo</button>
+                  <small id="nm-photo-st">Photos upload as soon as you take them.</small>
+                </div>
+              </div>
+            </div>
+            <div class="wide"><button class="btn btn-green" id="nm-add" type="submit">Add nominee</button></div>
+          </form>
+          <ul class="nl" id="nom-list"></ul>
+        </div>
+      </div>
+      <div style="display:grid;gap:18px;align-content:start;min-width:0">
+        <div class="box">
+          <h3>Live count</h3>
+          <p class="sub">Visible to organizers only until you reveal.</p>
+          <div class="turnout"><b id="turnout">0</b><span class="muted">ballots cast</span></div>
+          <div class="tally" id="tally"></div>
+        </div>
+        <div class="box">
+          <h3>Event name</h3>
+          <form id="ev-form" class="inline">
+            <label class="f">Shown above the headline<input type="text" id="ev-name" maxlength="70"></label>
+            <button class="btn btn-sm" type="submit">Save</button>
+          </form>
+        </div>
+        <div class="box danger-zone" id="owner-zone" hidden></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="castbar" id="castbar" hidden>
+  <div class="castbar-in">
+    <div class="picks" id="picks"></div>
+    <button class="btn btn-gold" id="cast-btn" type="button">Cast ballot</button>
+  </div>
+</div>
+
+<div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="cf-t">
+  <div class="modal-card">
+    <h3 id="cf-t">Cast your ballot?</h3>
+    <div class="modal-picks" id="cf-picks"></div>
+    <p class="muted" style="margin:0">You can only vote once, so double-check your picks.</p>
+    <div class="actions" style="justify-content:flex-end">
+      <button class="btn" id="cf-back" type="button">Go back</button>
+      <button class="btn btn-gold" id="cf-go" type="button">Cast ballot</button>
+    </div>
+  </div>
+</div>
+
+<div class="stage" id="stage" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(() => {
+  const DEFAULT_EVENT = "BRDC Year-End Party 2026";
+  const UNITS = ["BRDC Corporate","Smartfuels","Neo Bros Ventures","U Hotels","Toilena Hotel","Exelhaul Logistics","Pan Pacific","La Ferme Organique"];
+  const STATUSES = ["setup","open","closed","revealed"];
+  const STATUS_LABEL = {setup:"Opening soon", open:"Voting open", closed:"Voting closed", revealed:"Winners crowned"};
+  const CATS = [{key:"king", label:"King", title:"King of the Night"},{key:"queen", label:"Queen", title:"Queen of the Night"}];
+  const CROWN = '<svg class="crown" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 17.5 4.6 7.8l4.6 4.1L12 4.6l2.8 7.3 4.6-4.1L21 17.5z"/><rect fill="currentColor" x="3" y="19" width="18" height="2.2" rx="1.1"/></svg>';
+  const LOGO = document.querySelector(".logo").getAttribute("src");
+
+  const S = {
+    db:null, user:null, assets:null, myId:null, isAdmin:false, isOwner:false,
+    noRuntime:false, offline:false, error:"",
+    settings:null, settingsLoaded:false, nominees:[], nomLoaded:false,
+    myVote:null, results:null, votes:[],
+    pick:{king:null, queen:null}, busy:false, writeRefused:false,
+    pendingRemove:null, confirmReset:false, animateReveal:false, lastStatus:null,
+    draft:{id:null, src:null, uploading:false}, rowUploading:null
+  };
+  const CAMERA = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" d="M4 8h3l1.6-2.4h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.6" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+
+  const $ = s => document.querySelector(s);
+  function h(tag, attrs, ...kids){
+    const el = document.createElement(tag);
+    if (attrs) for (const [k,v] of Object.entries(attrs)){
+      if (v == null || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = v;
+      else if (k === "html") el.innerHTML = v; // static markup only
+      else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? "" : v);
+    }
+    for (const k of kids.flat()){ if (k == null || k === false) continue; el.append(k.nodeType ? k : document.createTextNode(String(k))); }
+    return el;
+  }
+  const crown = () => { const t = document.createElement("template"); t.innerHTML = CROWN; return t.content.firstChild; };
+  const initials = n => (n||"?").trim().split(/\s+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join("") || "?";
+  function photo(n){
+    const box = h("div",{class:"ph"});
+    const mono = () => h("span",{class:"mono", text:initials(n && n.name)});
+    if (n && typeof n.photo === "string" && /^[0-9a-f]{32}$/i.test(n.photo)){
+      const img = h("img",{src:"/_blob/"+n.photo, alt:"", loading:"lazy"});
+      img.addEventListener("error", () => img.replaceWith(mono()));
+      box.append(img);
+    } else box.append(mono());
+    return box;
+  }
+  const status = () => { const s = S.settings && S.settings.status; return STATUSES.includes(s) ? s : "setup"; };
+  const eventName = () => (S.settings && typeof S.settings.eventName === "string" && S.settings.eventName.trim()) || DEFAULT_EVENT;
+  const nomById = id => S.nominees.find(n => n.id === id);
+  const byCat = cat => S.nominees.filter(n => n.category === cat);
+  const loaded = () => S.settingsLoaded && S.nomLoaded;
+  const canVote = () => !!(S.db && S.myId && !S.writeRefused);
+
+  let toastTimer;
+  function toast(msg){ const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(()=>{ t.hidden = true; }, 3800); }
+  function errMsg(e){
+    const c = e && e.code;
+    if (c === "invalid_argument") return "That change wasn't saved. Your access to this page may be view-only.";
+    if (c === "resource_exhausted" || c === "rate_limited") return "Too many changes at once. Wait a moment and try again.";
+    if (c === "quota_exceeded" || c === "quota_or_state") return "Storage for this page is full. Remove unused nominees or photos.";
+    if (c === "unsupported_type") return "That photo format isn't supported. Use a JPG, PNG or WebP.";
+    if (c === "too_large") return "That photo is too large. Use one under 20 MB.";
+    if (c === "revoked") return "Your access to this page changed. Reload to continue.";
+    return "Something went wrong and the change wasn't saved. Try again.";
+  }
+  async function act(fn){
+    if (S.busy) return; S.busy = true; render();
+    try { await fn(); } catch(e){ toast(errMsg(e)); }
+    finally { S.busy = false; render(); }
+  }
+  async function withRetry(fn){
+    try { return await fn(); }
+    catch(e){ if (e && (e.code === "unavailable" || e.code === "store_unavailable")){ await new Promise(r=>setTimeout(r, 600 + Math.random()*800)); return await fn(); } throw e; }
+  }
+
+  /* ---------- tally ---------- */
+  function tally(){
+    const counts = {king:{}, queen:{}};
+    for (const v of S.votes){
+      for (const c of CATS){
+        const n = nomById(v[c.key]);
+        if (n && n.category === c.key) counts[c.key][n.id] = (counts[c.key][n.id]||0) + 1;
+      }
+    }
+    const out = {ballots:S.votes.length};
+    for (const c of CATS){
+      out[c.key] = byCat(c.key).map(n => ({n, votes:counts[c.key][n.id]||0})).sort((a,b)=>b.votes-a.votes || a.n.name.localeCompare(b.n.name));
+    }
+    return out;
+  }
+
+  /* ---------- render ---------- */
+  function render(){
+    const st = status();
+    if (S.lastStatus && S.lastStatus !== "revealed" && st === "revealed") S.animateReveal = true;
+    S.lastStatus = st;
+    renderHead(); renderNotice(); renderResults(); renderBallot(); renderCastbar(); renderDesk(); renderStage();
+  }
+
+  function renderHead(){
+    const st = status();
+    $("#pill").dataset.s = st;
+    $("#pill-t").textContent = loaded() ? STATUS_LABEL[st] : "Loading";
+    $("#ev-eyebrow").textContent = eventName();
+  }
+
+  function notice(title, body, cls){
+    return h("div",{class:"notice "+(cls||"")}, crown(), h("div",null, h("h3",{text:title}), body ? h("p",{text:body}) : null));
+  }
+  function renderNotice(){
+    const box = $("#notice"); box.replaceChildren();
+    const st = status();
+    if (S.noRuntime){ box.append(notice("Open this page in claude.ai to vote", "Voting works when the page is opened from its claude.ai link while signed in to your BRDC account.")); return; }
+    if (S.error){ box.append(notice("The ballot box is unavailable", S.error)); return; }
+    if (!loaded()){
+      box.append(notice(S.offline ? "Can't reach the ballot box yet" : "Opening the ballot box…", S.offline ? "Check your connection. This page updates on its own once it connects." : null));
+      return;
+    }
+    if (!S.myId && st === "open"){ box.append(notice("Sign in to vote", "You can see the nominees, but voting needs a signed-in BRDC account.")); return; }
+    const mine = S.myVote;
+    const pickNames = mine ? `${(nomById(mine.king)||{}).name || "a nominee"} for King and ${(nomById(mine.queen)||{}).name || "a nominee"} for Queen` : "";
+    if (st === "setup"){ box.append(notice("Voting opens soon", "The organizers are finalizing the nominees. The ballot opens here automatically, so keep this page handy.")); return; }
+    if (st === "open"){
+      if (mine){ box.append(notice("Your ballot is in", `You voted ${pickNames}. Winners are crowned at the end of the night.`, "voted")); return; }
+      if (S.writeRefused){ box.append(notice("This account can't vote here", "You can see the nominees, but your access is view-only. Ask the organizer to give you Contributor access.")); return; }
+      return;
+    }
+    if (st === "closed"){ box.append(notice("Voting is closed", mine ? `Thanks for voting. You picked ${pickNames}. Watch the stage for the reveal.` : "Ballots are being counted. Watch the stage for the reveal.")); return; }
+  }
+
+  function renderResults(){
+    const sec = $("#results");
+    const r = S.results;
+    if (status() !== "revealed" || !r){ sec.hidden = true; sec.replaceChildren(); return; }
+    sec.hidden = false; sec.replaceChildren();
+    sec.append(h("div",{class:"results-head"},
+      h("h2",{text:"The crowns go to…"}),
+      h("span",{class:"muted", text:`${Number(r.total)||0} ballots counted`})));
+    const wrap = h("div",{class:"winners"});
+    for (const c of CATS){
+      const rows = Array.isArray(r[c.key]) ? r[c.key] : [];
+      const top = rows.length ? rows[0].votes : 0;
+      const winners = top > 0 ? rows.filter(x => x.votes === top) : [];
+      const total = rows.reduce((a,x)=>a+(Number(x.votes)||0),0) || 1;
+      const card = h("article",{class:"win"});
+      if (!winners.length){
+        card.append(h("div",{class:"win-title"}, crown(), c.title), h("p",{class:"muted", text:"No votes were cast in this category."}));
+      } else {
+        const w = winners[0];
+        card.append(h("div",{class:"win-top"}, photo(w),
+          h("div",{style:"min-width:0"},
+            h("div",{class:"win-title"}, crown(), c.title),
+            h("div",{class:"win-name", text: winners.map(x=>x.name).join(" & ")}),
+            w.unit ? h("div",{class:"unit", style:"padding:0", text: winners.map(x=>x.unit).filter(Boolean).join(" · ")}) : null,
+            h("div",{class:"win-votes", text:`${top} ${top===1?"vote":"votes"} · ${Math.round(top/total*100)}%`}))));
+        if (winners.length > 1) card.append(h("span",{class:"tie", text:`${winners.length}-way tie`}));
+        const rest = rows.filter(x => !winners.includes(x)).slice(0,4);
+        if (rest.length) card.append(h("ul",{class:"runners"}, rest.map(x => h("li",null, h("span",{text:x.name}), h("span",{text:`${x.votes} ${x.votes===1?"vote":"votes"}`})))));
+      }
+      wrap.append(card);
+    }
+    sec.append(wrap);
+  }
+
+  function renderBallot(){
+    const sec = $("#ballot"); sec.replaceChildren();
+    const st = status();
+    if (!loaded() || st === "revealed"){ sec.hidden = true; return; }
+    sec.hidden = false;
+    const mine = S.myVote;
+    const selectable = st === "open" && !mine && canVote();
+    for (const c of CATS){
+      const list = byCat(c.key);
+      const col = h("div",{class:"col"},
+        h("div",{class:"col-head"},
+          h("h2",null, crown(), c.title),
+          h("span",{class:"count", text:`${list.length} ${list.length===1?"nominee":"nominees"}`})));
+      if (!list.length){
+        col.append(h("div",{class:"empty", text: S.isAdmin ? `No ${c.label} nominees yet. Add them in the organizer desk below.` : `${c.label} nominees will appear here.`}));
+      } else {
+        const grid = h("div",{class:"grid"});
+        for (const n of list){
+          const chosen = mine ? mine[c.key] === n.id : S.pick[c.key] === n.id;
+          const anyChosen = mine ? !!mine[c.key] : !!S.pick[c.key];
+          const btn = h("button",{
+            type:"button", class:"nom" + (anyChosen && !chosen && (mine || !selectable) ? " dim" : ""),
+            "aria-pressed": chosen ? "true" : "false",
+            "aria-label": `${n.name}${n.unit ? ", "+n.unit : ""}. ${selectable ? "Vote for "+c.label : ""}`,
+            disabled: selectable ? null : true,
+            onclick: () => { S.pick[c.key] = S.pick[c.key] === n.id ? null : n.id; render(); }
+          }, photo(n), h("div",{class:"nom-name", text:n.name}), n.unit ? h("div",{class:"unit", text:n.unit}) : null);
+          if (chosen) btn.append(h("span",{class:"seal"}, crown(), mine ? "Your vote" : "Your pick"));
+          grid.append(btn);
+        }
+        col.append(grid);
+      }
+      sec.append(col);
+    }
+  }
+
+  function renderCastbar(){
+    const st = status();
+    const show = loaded() && st === "open" && !S.myVote && canVote() && byCat("king").length && byCat("queen").length;
+    $("#castbar").hidden = !show;
+    document.body.classList.toggle("has-bar", !!show);
+    if (!show){ $("#confirm").hidden = true; return; }
+    const picks = $("#picks"); picks.replaceChildren();
+    for (const c of CATS){
+      const n = nomById(S.pick[c.key]);
+      picks.append(h("div",null, h("small",{text:c.label}), n ? h("b",{text:n.name}) : h("b",{class:"none", text:"Not picked yet"})));
+    }
+    $("#cast-btn").disabled = !(S.pick.king && S.pick.queen && nomById(S.pick.king) && nomById(S.pick.queen)) || S.busy;
+    const cf = $("#cf-picks"); cf.replaceChildren();
+    for (const c of CATS){ const n = nomById(S.pick[c.key]); cf.append(h("div",null, h("span",{text:c.label}), h("b",{text:n ? n.name : "—"}))); }
+    $("#cf-go").disabled = S.busy;
+  }
+
+  function renderDesk(){
+    const desk = $("#desk");
+    desk.hidden = !(S.isAdmin && S.db);
+    if (desk.hidden) return;
+    const st = status();
+    // steps
+    const steps = $("#steps"); steps.replaceChildren();
+    const idx = STATUSES.indexOf(st);
+    ["Set up","Voting open","Voting closed","Revealed"].forEach((label,i) => steps.append(h("li",{class: i<idx ? "done" : i===idx ? "now" : ""}, label)));
+    // actions
+    const a = $("#st-actions"); a.replaceChildren();
+    const ready = byCat("king").length > 0 && byCat("queen").length > 0;
+    const B = (label, cls, fn, dis) => h("button",{type:"button", class:"btn "+cls, disabled: S.busy || dis ? true : null, onclick:()=>act(fn)}, label);
+    if (st === "setup") a.append(B("Open voting","btn-green", ()=>writeSettings({status:"open"}), !ready));
+    if (st === "open") a.append(B("Close voting","btn-gold", ()=>writeSettings({status:"closed"})));
+    if (st === "closed"){ a.append(B("Reveal winners","btn-gold", reveal)); a.append(B("Reopen voting","", ()=>writeSettings({status:"open"}))); }
+    if (st === "revealed") a.append(B("Hide results","", hideResults));
+    a.append(h("button",{type:"button", class:"btn", onclick: openStage}, "Present on screen"));
+    if (st === "setup" && !ready) a.append(h("p",{class:"muted", style:"margin:0;font-size:.88rem;flex-basis:100%", text:"Add at least one King and one Queen nominee to open voting."}));
+    // tally
+    const t = tally();
+    $("#turnout").textContent = t.ballots;
+    const tbox = $("#tally"); tbox.replaceChildren();
+    for (const c of CATS){
+      const rows = t[c.key];
+      const max = Math.max(1, ...rows.map(r=>r.votes));
+      const grp = h("div",null, h("h4",{text:c.label}));
+      if (!rows.length) grp.append(h("p",{class:"muted", style:"margin:0;font-size:.88rem", text:"No nominees yet."}));
+      rows.forEach((r,i) => {
+        const bar = h("div",{class:"bar"}, h("i",{style:`width:${(r.votes/max*100).toFixed(1)}%`}));
+        grp.append(h("div",{class:"bar-row" + (i===0 && r.votes>0 ? " lead" : "")}, h("span",{text:r.n.name, title:r.n.name}), bar, h("span",{text:r.votes})));
+      });
+      tbox.append(grp);
+    }
+    // nominee list
+    const nl = $("#nom-list"); nl.replaceChildren();
+    for (const c of CATS) for (const n of byCat(c.key)){
+      const confirming = S.pendingRemove === n.id;
+      const ph = photo(n);
+      if (S.rowUploading === n.id) ph.classList.add("busy");
+      const acts = h("div",{class:"row-act"});
+      if (S.assets){
+        const inputId = "re-" + n.id;
+        const inp = h("input",{type:"file", id:inputId, class:"vh", accept:"image/*", capture:"environment"});
+        inp.addEventListener("change", () => retakePhoto(n, inp));
+        acts.append(inp, h("label",{class:"btn btn-sm", for:inputId, "aria-disabled": S.rowUploading ? "true" : null, style: S.rowUploading ? "pointer-events:none;opacity:.42" : null}, S.rowUploading === n.id ? "Uploading…" : n.photo ? "Retake" : "Add photo"));
+      }
+      acts.append(h("button",{type:"button", class:"btn btn-sm " + (confirming ? "btn-danger" : ""), disabled: S.busy || null,
+          onclick: () => { if (!confirming){ S.pendingRemove = n.id; render(); setTimeout(()=>{ if (S.pendingRemove===n.id){ S.pendingRemove=null; render(); } }, 4000); } else act(()=>removeNominee(n)); }
+        }, confirming ? "Confirm remove" : "Remove"));
+      nl.append(h("li",null, ph,
+        h("div",{class:"meta"}, h("b",{text:n.name}), h("small",{text:`${c.label}${n.unit ? " · "+n.unit : ""}`})),
+        acts));
+    }
+    $("#nm-photo-wrap").hidden = !S.assets;
+    renderDraft();
+    const ev = $("#ev-name"); if (document.activeElement !== ev) ev.value = eventName();
+    // owner zone
+    const oz = $("#owner-zone"); oz.hidden = !S.isOwner; oz.replaceChildren();
+    if (S.isOwner){
+      oz.append(h("h3",{text:"Reset ballots"}),
+        h("p",{class:"sub", style:"margin:-10px 0 0", text:"Deletes every ballot and the published results, and moves voting back to set up. Use it to clear test votes before the party."}));
+      if (!S.confirmReset) oz.append(h("div",{class:"actions"}, h("button",{type:"button", class:"btn btn-danger btn-sm", disabled: S.busy || null, onclick:()=>{ S.confirmReset = true; render(); }}, "Reset all ballots")));
+      else oz.append(h("div",{class:"actions"},
+        h("button",{type:"button", class:"btn btn-danger btn-sm", disabled: S.busy || null, onclick:()=>act(resetBallots)}, `Delete ${S.votes.length} ${S.votes.length===1?"ballot":"ballots"}`),
+        h("button",{type:"button", class:"btn btn-sm", onclick:()=>{ S.confirmReset = false; render(); }}, "Cancel")));
+    }
+  }
+
+  function renderStage(){
+    const stg = $("#stage");
+    const on = location.hash === "#stage";
+    stg.hidden = !on;
+    if (!on){ return; }
+    const st = status();
+    stg.replaceChildren();
+    stg.classList.toggle("anim", S.animateReveal);
+    stg.append(h("button",{type:"button", class:"btn btn-sm stage-x", onclick: closeStage}, "Exit"));
+    stg.append(h("img",{class:"logo", src:LOGO, alt:"Bahama Realty and Development Corporation"}));
+    stg.append(h("div",{class:"eyebrow", text:eventName()}));
+    if (st === "revealed" && S.results){
+      stg.append(h("h2",{text:"Your King & Queen"}));
+      const w = h("div",{class:"stage-w"});
+      for (const c of CATS){
+        const rows = Array.isArray(S.results[c.key]) ? S.results[c.key] : [];
+        const top = rows.length ? rows[0].votes : 0;
+        const winners = top > 0 ? rows.filter(x=>x.votes===top) : [];
+        w.append(h("div",{class:"sw"}, winners.length ? photo(winners[0]) : null,
+          h("div",{class:"t"}, crown(), c.title),
+          h("div",{class:"n", text: winners.length ? winners.map(x=>x.name).join(" & ") : "No votes"}),
+          winners.length ? h("div",{class:"u", text: winners.map(x=>x.unit).filter(Boolean).join(" · ")}) : null));
+      }
+      stg.append(w);
+    } else if (st === "open"){
+      stg.append(h("h2",{text:"Voting is open"}));
+      if (S.isAdmin) stg.append(h("div",{class:"big", text: S.votes.length}), h("p",{class:"lede", text:"ballots cast so far"}));
+      stg.append(h("p",{class:"lede", text:"Open the BRDC King & Queen page on your phone and cast your ballot."}));
+    } else if (st === "closed"){
+      stg.append(h("h2",{text:"The ballots are in"}));
+      if (S.isAdmin) stg.append(h("div",{class:"big", text: S.votes.length}), h("p",{class:"lede", text:"ballots counted"}));
+      stg.append(h("p",{class:"lede", text:"Who will wear the crowns? Stay right where you are."}));
+    } else {
+      stg.append(h("h2",{text:"Who wears the crown?"}), h("p",{class:"lede", text:"Voting for King and Queen of the Night opens soon."}));
+    }
+    if (S.animateReveal) setTimeout(()=>{ S.animateReveal = false; }, 1600);
+  }
+
+  function openStage(){ location.hash = "stage"; try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(()=>{}); } catch(e){} }
+  function closeStage(){ location.hash = ""; try { document.fullscreenElement && document.exitFullscreen().catch(()=>{}); } catch(e){} render(); }
+  window.addEventListener("hashchange", render);
+
+  /* ---------- writes ---------- */
+  async function writeSettings(patch){
+    const cur = S.settings || {};
+    const body = {status: STATUSES.includes(cur.status) ? cur.status : "setup", eventName: (typeof cur.eventName === "string" && cur.eventName) || DEFAULT_EVENT, ...patch, updatedAt: new Date().toISOString()};
+    await withRetry(() => S.db.doc("settings/main").set(body));
+  }
+  async function reveal(){
+    const t = tally();
+    const pack = k => t[k].map(r => ({id:r.n.id, name:r.n.name, unit:r.n.unit||"", photo:r.n.photo||null, votes:r.votes}));
+    await withRetry(() => S.db.doc("results/main").set({total:t.ballots, king:pack("king"), queen:pack("queen"), at:new Date().toISOString()}));
+    await writeSettings({status:"revealed"});
+    toast("Winners revealed to everyone.");
+  }
+  async function hideResults(){
+    await writeSettings({status:"closed"});
+    await withRetry(() => S.db.doc("results/main").delete());
+  }
+  async function removeNominee(n){
+    await withRetry(() => S.db.doc("nominees/"+n.id).delete());
+    S.pendingRemove = null;
+    if (n.photo && S.assets){ try { await S.assets.delete(n.photo); } catch(e){} }
+    toast(`Removed ${n.name}.`);
+  }
+  async function resetBallots(){
+    const ids = S.votes.map(v => v.id);
+    for (const id of ids) await withRetry(() => S.db.doc("votes/"+id).delete());
+    await withRetry(() => S.db.doc("results/main").delete());
+    await writeSettings({status:"setup"});
+    S.confirmReset = false;
+    toast(`Deleted ${ids.length} ${ids.length===1?"ballot":"ballots"}.`);
+  }
+  async function shrink(file){
+    try {
+      const bmp = await createImageBitmap(file);
+      const sc = Math.min(1, 900 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement("canvas");
+      c.width = Math.round(bmp.width*sc); c.height = Math.round(bmp.height*sc);
+      c.getContext("2d").drawImage(bmp, 0, 0, c.width, c.height);
+      const b = await new Promise(r => c.toBlob(r, "image/jpeg", .86));
+      return b || file;
+    } catch(e){ return file; }
+  }
+  async function uploadPhoto(file){
+    const blob = await shrink(file);
+    return await S.assets.upload(blob, {type: blob.type || "image/jpeg"});
+  }
+  function renderDraft(){
+    const d = S.draft, prev = $("#nm-prev");
+    prev.replaceChildren();
+    if (d.src){ prev.append(h("img",{src:d.src, alt:"Nominee photo preview"})); }
+    else { const t = document.createElement("template"); t.innerHTML = CAMERA; prev.append(t.content.firstChild); }
+    prev.classList.toggle("has", !!d.src && !d.uploading);
+    prev.classList.toggle("busy", !!d.uploading);
+    $("#nm-photo-st").textContent = d.uploading ? "Uploading photo…" : d.id ? "Photo uploaded. It's saved with the nominee when you add them." : "Photos upload as soon as you take them.";
+    $("#nm-clear").hidden = !d.id || d.uploading;
+    $("#nm-add").disabled = S.busy || !!d.uploading;
+  }
+  async function onDraftFile(input){
+    const f = input.files && input.files[0];
+    input.value = "";
+    if (!f || !S.assets || S.draft.uploading) return;
+    const old = S.draft.id;
+    const local = URL.createObjectURL(f);
+    S.draft = {id:old, src:local, uploading:true}; renderDraft();
+    try {
+      const up = await uploadPhoto(f);
+      S.draft = {id:up.id, src:up.url, uploading:false};
+      if (old) S.assets.delete(old).catch(()=>{});
+      toast("Photo uploaded.");
+    } catch(e){
+      S.draft = {id:old, src: old ? "/_blob/"+old : null, uploading:false};
+      toast(errMsg(e));
+    } finally { URL.revokeObjectURL(local); renderDraft(); }
+  }
+  async function retakePhoto(n, input){
+    const f = input.files && input.files[0];
+    input.value = "";
+    if (!f || !S.assets || S.rowUploading) return;
+    S.rowUploading = n.id; render();
+    try {
+      const up = await uploadPhoto(f);
+      await withRetry(() => S.db.doc("nominees/"+n.id).update({photo:up.id}));
+      if (n.photo && n.photo !== up.id) S.assets.delete(n.photo).catch(()=>{});
+      toast(`Photo updated for ${n.name}.`);
+    } catch(e){ toast(errMsg(e)); }
+    finally { S.rowUploading = null; render(); }
+  }
+
+  async function castVote(){
+    if (S.busy || !S.db || !S.myId) return;
+    const king = S.pick.king, queen = S.pick.queen;
+    if (!nomById(king) || !nomById(queen) || status() !== "open") return;
+    S.busy = true; render();
+    try {
+      const ref = S.db.doc("votes/"+S.myId);
+      const existing = await withRetry(() => ref.get());
+      if (existing.exists){ toast("You've already voted."); }
+      else { await withRetry(() => ref.set({king, queen, at:new Date().toISOString()})); toast("Ballot cast. Thanks for voting!"); }
+    } catch(e){
+      if (e && e.code === "invalid_argument") S.writeRefused = true;
+      else toast(errMsg(e));
+    } finally {
+      S.busy = false; $("#confirm").hidden = true; render();
+    }
+  }
+
+  /* ---------- wiring ---------- */
+  const unitSel = $("#nm-unit");
+  UNITS.forEach(u => unitSel.append(h("option",{value:u}, u)));
+  $("#cast-btn").addEventListener("click", () => { $("#confirm").hidden = false; $("#cf-go").focus(); });
+  $("#cf-back").addEventListener("click", () => { $("#confirm").hidden = true; });
+  $("#cf-go").addEventListener("click", castVote);
+  document.addEventListener("keydown", e => { if (e.key === "Escape"){ if (!$("#confirm").hidden) $("#confirm").hidden = true; else if (location.hash === "#stage") closeStage(); } });
+  $("#add-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("#nm-name").value.trim().replace(/\s+/g," ").slice(0,60);
+    const category = $("#nm-cat").value === "queen" ? "queen" : "king";
+    const unit = UNITS.includes(unitSel.value) ? unitSel.value : "";
+    if (!name){ $("#nm-name").focus(); return; }
+    if (S.draft.uploading) return;
+    act(async () => {
+      const photoId = S.draft.id || null;
+      await withRetry(() => S.db.collection("nominees").doc().set({name, category, unit, photo:photoId, createdAt:Date.now()}));
+      $("#nm-name").value = "";
+      S.draft = {id:null, src:null, uploading:false};
+      toast(`Added ${name} as a ${category === "king" ? "King" : "Queen"} nominee.`);
+      $("#nm-name").focus();
+    });
+  });
+  $("#nm-cam").addEventListener("change", e => onDraftFile(e.target));
+  $("#nm-pick").addEventListener("change", e => onDraftFile(e.target));
+  $("#nm-clear").addEventListener("click", () => {
+    const old = S.draft.id;
+    S.draft = {id:null, src:null, uploading:false}; renderDraft();
+    if (old && S.assets) S.assets.delete(old).catch(()=>{});
+  });
+  $("#ev-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const v = $("#ev-name").value.trim().slice(0,70) || DEFAULT_EVENT;
+    act(async () => { await writeSettings({eventName:v}); $("#ev-name").blur(); toast("Event name saved."); });
+  });
+
+  /* ---------- boot ---------- */
+  async function boot(){
+    render();
+    if (!window.claude || typeof window.claude.use !== "function"){ S.noRuntime = true; S.settingsLoaded = S.nomLoaded = true; render(); return; }
+    const [db, user] = await Promise.all([window.claude.use("db"), window.claude.use("user")]);
+    if (!db){ S.noRuntime = true; S.settingsLoaded = S.nomLoaded = true; render(); return; }
+    S.db = db; S.user = user;
+    if (user){
+      const [id, admin, owner] = await Promise.all([user.id(), user.canEdit(), user.isOwner()]);
+      S.myId = id; S.isAdmin = !!admin; S.isOwner = !!owner;
+    }
+    let settled = false;
+    const timer = setTimeout(() => { if (!settled){ S.offline = true; render(); } }, 10000);
+    const ok = meta => { if (!meta.fromCache && !settled){ settled = true; clearTimeout(timer); S.offline = false; } };
+    const fail = e => {
+      settled = true; clearTimeout(timer);
+      S.settingsLoaded = S.nomLoaded = true;
+      if (e && e.code === "revoked") S.error = "Your access to this page changed. Reload to continue.";
+      else S.error = "The page couldn't load the ballot. Reload to try again.";
+      render();
+    };
+    db.doc("settings/main").onSnapshot(s => { S.settings = s.exists ? s.data() : null; S.settingsLoaded = true; ok(s.metadata); render(); }, fail);
+    db.collection("nominees").onSnapshot(s => {
+      S.nominees = s.docs.map(d => ({id:d.id, ...d.data()}))
+        .filter(n => typeof n.name === "string" && n.name && (n.category === "king" || n.category === "queen"))
+        .sort((a,b) => (a.createdAt||0) - (b.createdAt||0));
+      for (const c of CATS) if (S.pick[c.key] && !nomById(S.pick[c.key])) S.pick[c.key] = null;
+      S.nomLoaded = true; ok(s.metadata); render();
+    }, fail);
+    db.doc("results/main").onSnapshot(s => { S.results = s.exists ? s.data() : null; render(); }, () => {});
+    if (S.myId) db.doc("votes/"+S.myId).onSnapshot(s => { S.myVote = s.exists ? s.data() : null; render(); }, () => {});
+    if (S.isAdmin){
+      db.collection("votes").onSnapshot(s => { S.votes = s.docs.map(d => ({id:d.id, ...d.data()})); render(); }, () => {});
+      window.claude.use("assets").then(a => { S.assets = a; render(); }).catch(()=>{});
+    }
+  }
+  boot();
+})();
+</script>
