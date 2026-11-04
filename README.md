@@ -2,7 +2,12 @@
 
 Voting page for the BRDC Year-End Party 2026: guests vote for one **King** and one **Queen of the Night**, organizers watch a live count, and the winners are revealed on every screen at once.
 
-Live page: https://claude.ai/artifact/RTaoi3watSCSwW9ftrHrVf
+| Link | For | Shows |
+| --- | --- | --- |
+| https://claude.ai/artifact/RTaoi3watSCSwW9ftrHrVf | Guests | Ballot and results only |
+| https://claude.ai/artifact/RTaoi3watSCSwW9ftrHrVf#organizer | Owner and Editors | Organizer desk: nominees, photos, voting status, live count |
+
+Both links are the same page and share the same data. The organizer link only works for the owner and Editors; anyone else who opens it sees a note with a button to the voter page.
 
 ## How it runs
 

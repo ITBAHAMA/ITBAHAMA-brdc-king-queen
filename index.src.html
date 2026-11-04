@@ -230,10 +230,13 @@ label.btn{cursor:pointer}
 <div class="page">
   <header class="mast">
     <img class="logo" src="__LOGO__" alt="Bahama Realty and Development Corporation">
-    <span class="pill" id="pill" data-s="setup"><i></i><span id="pill-t">Opening soon</span></span>
+    <div class="actions" style="align-items:center">
+      <a class="btn btn-sm" id="view-link" href="#organizer" hidden>Organizer desk</a>
+      <span class="pill" id="pill" data-s="setup"><i></i><span id="pill-t">Opening soon</span></span>
+    </div>
   </header>
 
-  <section class="hero">
+  <section class="hero" id="hero">
     <div class="eyebrow" id="ev-eyebrow">BRDC Year-End Party 2026</div>
     <h1>Who wears the <em>crown</em> tonight?</h1>
     <p>Vote for one King and one Queen of the night. One ballot per person, and other guests can't see how you voted.</p>
@@ -245,8 +248,9 @@ label.btn{cursor:pointer}
 
   <section id="desk" class="desk" hidden>
     <div class="desk-head">
-      <div class="eyebrow">Only organizers see this</div>
+      <div class="eyebrow">Organizers only</div>
       <h2>Organizer desk</h2>
+      <p class="muted" style="margin:6px 0 0;max-width:62ch">Add nominees and run the vote from here. Guests vote on the voter page, which doesn't show any of this.</p>
     </div>
     <div class="desk-grid">
       <div style="display:grid;gap:18px;align-content:start;min-width:0">
@@ -421,6 +425,13 @@ label.btn{cursor:pointer}
     const st = status();
     if (S.lastStatus && S.lastStatus !== "revealed" && st === "revealed") S.animateReveal = true;
     S.lastStatus = st;
+    const v = view();
+    if (v !== "stage") S.baseView = v;
+    $("#hero").hidden = v === "organizer";
+    const link = $("#view-link");
+    link.hidden = !(S.isAdmin && S.db);
+    link.setAttribute("href", v === "organizer" ? "#vote" : "#organizer");
+    link.textContent = v === "organizer" ? "Voter page" : "Organizer desk";
     renderHead(); renderNotice(); renderResults(); renderBallot(); renderCastbar(); renderDesk(); renderStage();
   }
 
@@ -439,6 +450,15 @@ label.btn{cursor:pointer}
     const st = status();
     if (S.noRuntime){ box.append(notice("Open this page in claude.ai to vote", "Voting works when the page is opened from its claude.ai link while signed in to your BRDC account.")); return; }
     if (S.error){ box.append(notice("The ballot box is unavailable", S.error)); return; }
+    if (view() === "organizer"){
+      if (!loaded()) box.append(notice("Opening the organizer desk…", null));
+      else if (!S.isAdmin){
+        const n = notice("This page is for organizers", "Only the page owner and Editors can manage nominees and voting. To vote, open the voter page.");
+        n.querySelector("div").append(h("p",{style:"margin-top:10px"}, h("a",{class:"btn btn-sm btn-gold", href:"#vote"}, "Go to the voter page")));
+        box.append(n);
+      }
+      return;
+    }
     if (!loaded()){
       box.append(notice(S.offline ? "Can't reach the ballot box yet" : "Opening the ballot box…", S.offline ? "Check your connection. This page updates on its own once it connects." : null));
       return;
@@ -458,7 +478,7 @@ label.btn{cursor:pointer}
   function renderResults(){
     const sec = $("#results");
     const r = S.results;
-    if (status() !== "revealed" || !r){ sec.hidden = true; sec.replaceChildren(); return; }
+    if (view() === "organizer" || status() !== "revealed" || !r){ sec.hidden = true; sec.replaceChildren(); return; }
     sec.hidden = false; sec.replaceChildren();
     sec.append(h("div",{class:"results-head"},
       h("h2",{text:"The crowns go to…"}),
@@ -492,7 +512,7 @@ label.btn{cursor:pointer}
   function renderBallot(){
     const sec = $("#ballot"); sec.replaceChildren();
     const st = status();
-    if (!loaded() || st === "revealed"){ sec.hidden = true; return; }
+    if (view() === "organizer" || !loaded() || st === "revealed"){ sec.hidden = true; return; }
     sec.hidden = false;
     const mine = S.myVote;
     const selectable = st === "open" && !mine && canVote();
@@ -503,7 +523,7 @@ label.btn{cursor:pointer}
           h("h2",null, crown(), c.title),
           h("span",{class:"count", text:`${list.length} ${list.length===1?"nominee":"nominees"}`})));
       if (!list.length){
-        col.append(h("div",{class:"empty", text: S.isAdmin ? `No ${c.label} nominees yet. Add them in the organizer desk below.` : `${c.label} nominees will appear here.`}));
+        col.append(h("div",{class:"empty", text: S.isAdmin ? `No ${c.label} nominees yet. Add them from the Organizer desk (button at the top).` : `${c.label} nominees will appear here.`}));
       } else {
         const grid = h("div",{class:"grid"});
         for (const n of list){
@@ -527,7 +547,7 @@ label.btn{cursor:pointer}
 
   function renderCastbar(){
     const st = status();
-    const show = loaded() && st === "open" && !S.myVote && canVote() && byCat("king").length && byCat("queen").length;
+    const show = view() !== "organizer" && loaded() && st === "open" && !S.myVote && canVote() && byCat("king").length && byCat("queen").length;
     $("#castbar").hidden = !show;
     document.body.classList.toggle("has-bar", !!show);
     if (!show){ $("#confirm").hidden = true; return; }
@@ -544,7 +564,7 @@ label.btn{cursor:pointer}
 
   function renderDesk(){
     const desk = $("#desk");
-    desk.hidden = !(S.isAdmin && S.db);
+    desk.hidden = !(S.isAdmin && S.db && view() === "organizer");
     if (desk.hidden) return;
     const st = status();
     // steps
@@ -650,7 +670,8 @@ label.btn{cursor:pointer}
   }
 
   function openStage(){ location.hash = "stage"; try { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen().catch(()=>{}); } catch(e){} }
-  function closeStage(){ location.hash = ""; try { document.fullscreenElement && document.exitFullscreen().catch(()=>{}); } catch(e){} render(); }
+  function view(){ const h = location.hash; return h === "#organizer" ? "organizer" : h === "#stage" ? "stage" : "vote"; }
+  function closeStage(){ location.hash = S.baseView === "organizer" ? "organizer" : "vote"; try { document.fullscreenElement && document.exitFullscreen().catch(()=>{}); } catch(e){} render(); }
   window.addEventListener("hashchange", render);
 
   /* ---------- writes ---------- */
