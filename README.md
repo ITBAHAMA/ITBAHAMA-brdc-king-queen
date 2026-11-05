@@ -62,3 +62,5 @@ Every write goes through a database function. Organizer functions (`kq_admin_*`)
 ## Hosting
 
 GitHub Pages serves the site from the `main` branch root. After a push, wait for the **pages build and deployment** run in the Actions tab, then hard-refresh (Ctrl+F5).
+
+The CSS and JS links in `index.html` and `admin.html` end in `?v=<timestamp>`. Bump that number whenever those files change, so phones that already opened the site load the new version instead of a cached one.
