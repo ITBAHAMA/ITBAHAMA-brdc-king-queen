@@ -34,6 +34,8 @@
     $("#pill").dataset.s = st;
     $("#pill-t").textContent = store.loaded ? STATUS_LABEL[st] : "Loading";
     $("#ev-eyebrow").textContent = eventName();
+    $("#splash-ev").textContent = eventName();
+    maybeEndSplash();
     renderNotice(); renderResults(); renderBallot(); renderCastbar();
   }
 
@@ -148,6 +150,32 @@
   $("#cf-back").addEventListener("click", () => { $("#confirm").hidden = true; });
   $("#cf-go").addEventListener("click", cast);
   document.addEventListener("keydown", e => { if (e.key === "Escape") $("#confirm").hidden = true; });
+
+  // ---------- opening splash ----------
+  // Stays until nominees and this phone's ballot are loaded, and at least long enough for the crown to finish.
+  const REPEAT = (() => { try { const r = sessionStorage.getItem("kq_seen_splash"); sessionStorage.setItem("kq_seen_splash", "1"); return !!r; } catch (e) { return false; } })();
+  const REDUCED = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const MIN_MS = REDUCED ? 400 : REPEAT ? 1100 : 2600;
+  const MAX_MS = 9000;
+  let splashDone = false, splashTimer = null;
+  function endSplash() {
+    if (splashDone) return;
+    splashDone = true; clearTimeout(splashTimer);
+    const sp = $("#splash");
+    sp.classList.add("leave");
+    document.body.classList.add("entering");
+    setTimeout(() => { sp.hidden = true; document.body.classList.remove("entering"); }, 1100);
+  }
+  function maybeEndSplash() {
+    if (splashDone) return;
+    const ready = store.loaded && (S.myLoaded || store.offline);
+    if (!ready) return;
+    const wait = MIN_MS - performance.now();
+    clearTimeout(splashTimer);
+    if (wait <= 0) endSplash(); else splashTimer = setTimeout(endSplash, wait);
+  }
+  setTimeout(() => { if (!splashDone) $("#splash-status").textContent = "Still connecting… check your internet if this takes long."; }, 5500);
+  setTimeout(endSplash, MAX_MS);
 
   window.KQ.onChange(() => {
     if (!S.myLoaded || (status() === "setup" && S.myVote)) loadMyVote(); // a reset clears ballots
