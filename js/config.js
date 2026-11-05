@@ -5,6 +5,5 @@
 window.KQ_CONFIG = {
   supabaseUrl: "https://oflfxhtyfshzcoynauyn.supabase.co",
   supabaseAnonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9mbGZ4aHR5ZnNoemNveW5hdXluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NzQwMTAsImV4cCI6MjEwODA1MDAxMH0.ClEAB2VwVKmrzSsudlu845CIyLLICLFl89sVEwQ4gN4",
-  defaultEvent: "BRDC Year-End Party 2026",
-  units: ["BRDC Corporate", "Smartfuels", "Neo Bros Ventures", "U Hotels", "Toilena Hotel", "Exelhaul Logistics", "Pan Pacific", "La Ferme Organique"]
+  defaultEvent: "BRDC Year-End Party 2026"
 };

@@ -20,7 +20,7 @@ Guests don't need an account. The organizer page asks for the **admin PIN**. Ask
 ## Organizer page
 
 1. Unlock with the admin PIN.
-2. **Nominees:** enter name, King or Queen, and business unit. **Take photo** opens the phone camera; the photo is resized and saved with the nominee. Use **Retake** or **Add photo** on an existing nominee to change it.
+2. **Nominees:** enter the name and pick King or Queen. **Take photo** opens the phone camera; the photo is resized and saved with the nominee. Use **Retake** or **Add photo** on an existing nominee to change it.
 3. **Open voting** (needs at least one King and one Queen).
 4. **Present on screen** shows a full-screen projector view with the number of ballots cast.
 5. **Close voting**, then **Reveal winners**. Ties are shown as ties.
@@ -36,7 +36,7 @@ After 20 wrong PINs within 5 minutes, unlocking is blocked for 5 minutes.
 | `index.html` | Voter page |
 | `admin.html` | Organizer page |
 | `css/style.css` | Shared styles (BAHAMA green, black and crown gold) |
-| `js/config.js` | Supabase URL and public anon key, event name, business units |
+| `js/config.js` | Supabase URL, public anon key and default event name |
 | `js/common.js` | Shared helpers, live data loading, photo resizing |
 | `js/vote.js` | Voter page logic |
 | `js/admin.js` | Organizer page logic |
@@ -51,7 +51,7 @@ Data lives in Supabase, in tables prefixed `kq_` inside an existing project. The
 | Table | Contents | Public can |
 | --- | --- | --- |
 | `kq_settings` | Voting status and event name | read |
-| `kq_nominees` | Name, category, business unit, photo | read |
+| `kq_nominees` | Name, category, photo | read |
 | `kq_votes` | One row per device | nothing (only via `kq_cast_vote` / `kq_my_vote`) |
 | `kq_results` | Tallies, written at the reveal | read |
 | `kq_admin` | Hashed admin PIN | nothing |

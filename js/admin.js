@@ -226,7 +226,6 @@
   }
 
   // ---------- wiring ----------
-  C.units.forEach(u => $("#nm-unit").append(h("option", { value: u }, u)));
   const voterUrl = new URL("./", location.href).href;
   $("#voter-url").textContent = voterUrl;
   $("#copy-url").addEventListener("click", async () => {
@@ -253,11 +252,10 @@
     e.preventDefault();
     const name = $("#nm-name").value.trim().replace(/\s+/g, " ").slice(0, 60);
     const category = $("#nm-cat").value === "queen" ? "queen" : "king";
-    const unit = $("#nm-unit").value;
     if (!name) { $("#nm-name").focus(); return; }
     if (S.draft.working) return;
     act(async () => {
-      await admin("kq_admin_add_nominee", { p_name: name, p_category: category, p_unit: unit, p_photo: S.draft.src || "" });
+      await admin("kq_admin_add_nominee", { p_name: name, p_category: category, p_unit: "", p_photo: S.draft.src || "" });
       $("#nm-name").value = ""; S.draft = { src: null, working: false };
       window.KQ.queue("kq_nominees"); pollTally();
       toast(`Added ${name} as a ${category === "king" ? "King" : "Queen"} nominee.`);
