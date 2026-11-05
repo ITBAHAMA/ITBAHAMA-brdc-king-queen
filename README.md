@@ -1,67 +1,63 @@
 # BRDC King & Queen
 
-Voting page for the BRDC Year-End Party 2026: guests vote for one **King** and one **Queen of the Night**, organizers watch a live count, and the winners are revealed on every screen at once.
+Voting site for the BRDC Year-End Party 2026. Guests vote for one **King** and one **Queen of the Night** from their phones. Organizers manage nominees, watch a live count, and reveal the winners on every screen at once.
 
-| Link | For | Shows |
+## Links
+
+| Page | For | URL |
 | --- | --- | --- |
-| https://claude.ai/artifact/RTaoi3watSCSwW9ftrHrVf | Guests | Ballot and results only |
-| https://claude.ai/artifact/RTaoi3watSCSwW9ftrHrVf#organizer | Owner and Editors | Organizer desk: nominees, photos, voting status, live count |
+| Voter page | Everyone at the party | https://itbahama.github.io/ITBAHAMA-brdc-king-queen/ |
+| Organizer page | Admins with the PIN | https://itbahama.github.io/ITBAHAMA-brdc-king-queen/admin.html |
 
-Both links are the same page and share the same data. The organizer link only works for the owner and Editors; anyone else who opens it sees a note with a button to the voter page.
+Guests don't need an account. The organizer page asks for the **admin PIN**. Ask the IT team for it; it is not stored in this repo.
 
-## How it runs
+## How voting works
 
-The page is a claude.ai artifact. It uses claude.ai's built-in artifact features for storage and sign-in:
+- **One vote per phone.** Each browser gets a random device ID on first visit, and the database accepts one ballot per ID. Someone could vote again from a second browser or a private window, so it's meant for a friendly party vote, not a secure election.
+- **Nobody sees the count until the reveal.** Guests only see their own pick. The live count is on the organizer page only.
+- **Everything updates live.** When an organizer opens voting or reveals winners, every open voter page updates by itself within a few seconds.
 
-- **Shared database**: nominees, settings, ballots and results
-- **Asset storage**: nominee photos
-- **Viewer identity**: one ballot per signed-in account
+## Organizer page
 
-So it only works when opened from the claude.ai link above. Opening `index.html` from GitHub Pages or a local disk shows the page, but it can't load or save any data.
+1. Unlock with the admin PIN.
+2. **Nominees:** enter name, King or Queen, and business unit. **Take photo** opens the phone camera; the photo is resized and saved with the nominee. Use **Retake** or **Add photo** on an existing nominee to change it.
+3. **Open voting** (needs at least one King and one Queen).
+4. **Present on screen** shows a full-screen projector view with the number of ballots cast.
+5. **Close voting**, then **Reveal winners**. Ties are shown as ties.
+6. **Reset all ballots** clears test votes before the party (nominees stay).
+7. **Change PIN** under Admin PIN. Other organizers are asked for the new PIN on their next action.
 
-This repo is the version-controlled source and backup.
+After 20 wrong PINs within 5 minutes, unlocking is blocked for 5 minutes.
 
 ## Files
 
 | File | What it is |
 | --- | --- |
-| `index.src.html` | Page source with a `__LOGO__` placeholder (edit this one) |
-| `artifact.html` | Built page content, exactly as published to claude.ai |
-| `index.html` | The same page as a full HTML document, for opening in a browser |
-| `assets/bahama-logo.jpg` | Original BAHAMA logo |
-| `build.py` | Rebuilds `artifact.html` and `index.html` from the source and logo |
+| `index.html` | Voter page |
+| `admin.html` | Organizer page |
+| `css/style.css` | Shared styles (BAHAMA green, black and crown gold) |
+| `js/config.js` | Supabase URL and public anon key, event name, business units |
+| `js/common.js` | Shared helpers, live data loading, photo resizing |
+| `js/vote.js` | Voter page logic |
+| `js/admin.js` | Organizer page logic |
+| `assets/` | BAHAMA logo |
+| `supabase/*.sql` | Database tables and functions, exactly as applied |
+| `claude-artifact/` | Earlier claude.ai version of the page, kept for reference |
 
-Rebuild after editing the source:
+## Backend
 
-```bash
-python3 build.py
-```
+Data lives in Supabase, in tables prefixed `kq_` inside an existing project. They don't touch any other tables there.
 
-To publish a change, ask Claude to update the artifact at the link above with the new `artifact.html`.
+| Table | Contents | Public can |
+| --- | --- | --- |
+| `kq_settings` | Voting status and event name | read |
+| `kq_nominees` | Name, category, business unit, photo | read |
+| `kq_votes` | One row per device | nothing (only via `kq_cast_vote` / `kq_my_vote`) |
+| `kq_results` | Tallies, written at the reveal | read |
+| `kq_admin` | Hashed admin PIN | nothing |
 
-## Who can do what
+Every write goes through a database function. Organizer functions (`kq_admin_*`) check the PIN inside the database, so the anon key in `js/config.js` is safe to publish: on its own it can only read nominees, status and revealed results, and cast a vote while voting is open.
 
-| Role (claude.ai share menu) | Can |
-| --- | --- |
-| Owner | Everything, including **Reset all ballots** |
-| Editor | Organizer desk: add/remove nominees, take photos, open/close voting, reveal winners, see ballots |
-| Contributor | Vote once |
-| Viewer | See nominees and results, can't vote |
+## Hosting
 
-Share the artifact with the BRDC organization at **Contributor** so staff can vote.
-
-## Data layout
-
-| Path | Contents | Read | Write |
-| --- | --- | --- | --- |
-| `settings/main` | `status` (setup, open, closed, revealed), `eventName` | everyone | editors |
-| `nominees/<id>` | `name`, `category` (king/queen), `unit`, `photo` (asset id) | everyone | editors |
-| `votes/<user id>` | `king`, `queen` (nominee ids), `at` | editors and the voter | the voter (own), owner |
-| `results/main` | Tallies written when winners are revealed | everyone | editors |
-
-## Party night
-
-1. Add nominees in the organizer desk. **Take photo** opens the phone camera and uploads immediately.
-2. **Open voting**.
-3. Put the page on the projector with **Present on screen**. It shows the running ballot count.
-4. **Close voting**, then **Reveal winners**.
+GitHub Pages serves the site from the `main` branch root. After a push, wait for the **pages build and deployment** run in the Actions tab, then hard-refresh (Ctrl+F5).

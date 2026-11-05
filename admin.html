@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>BRDC King &amp; Queen Organizer</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#090c08">
+<link rel="icon" href="assets/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Jost:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="page">
+  <header class="mast">
+    <img class="logo" src="assets/logo.jpg" alt="Bahama Realty and Development Corporation">
+    <div class="actions" style="align-items:center">
+      <button class="btn btn-sm" id="lock-btn" type="button" hidden>Lock</button>
+      <span class="pill" id="pill" data-s="setup"><i></i><span id="pill-t">Loading</span></span>
+    </div>
+  </header>
+
+  <!-- PIN gate -->
+  <section class="login" id="login">
+    <div class="eyebrow">Organizers only</div>
+    <h1>Organizer desk</h1>
+    <p class="muted" style="margin:0">Enter the admin PIN to manage nominees and run the vote. Guests vote on the <a href="./">voter page</a>.</p>
+    <form id="login-form" class="inline">
+      <label class="f">Admin PIN<input type="password" id="pin" inputmode="numeric" autocomplete="current-password" required></label>
+      <button class="btn btn-gold" type="submit" id="login-btn">Unlock</button>
+    </form>
+    <p class="err" id="login-err" hidden></p>
+  </section>
+
+  <!-- Desk -->
+  <section class="desk" id="desk" hidden>
+    <div class="desk-head">
+      <div class="eyebrow" id="ev-eyebrow">BRDC Year-End Party 2026</div>
+      <h1>Organizer desk</h1>
+    </div>
+    <div class="desk-grid">
+      <div class="stack">
+        <div class="box">
+          <h2>Voting status</h2>
+          <ol class="steps" id="steps"></ol>
+          <div class="actions" id="st-actions"></div>
+        </div>
+        <div class="box">
+          <h2>Nominees</h2>
+          <form id="add-form" class="form-grid" autocomplete="off">
+            <label class="f wide">Name<input type="text" id="nm-name" maxlength="60" required placeholder="e.g. Juan dela Cruz"></label>
+            <label class="f">Category
+              <select id="nm-cat"><option value="king">King</option><option value="queen">Queen</option></select>
+            </label>
+            <label class="f">Business unit<select id="nm-unit"></select></label>
+            <div class="f wide">
+              <span>Photo (optional)</span>
+              <div class="snap">
+                <div class="snap-prev" id="nm-prev"></div>
+                <div class="snap-ctl">
+                  <input type="file" id="nm-cam" class="vh" accept="image/*" capture="environment">
+                  <label class="btn btn-sm btn-gold" for="nm-cam">Take photo</label>
+                  <input type="file" id="nm-pick" class="vh" accept="image/*">
+                  <label class="btn btn-sm" for="nm-pick">Choose from gallery</label>
+                  <button type="button" class="btn btn-sm" id="nm-clear" hidden>Remove photo</button>
+                  <small id="nm-photo-st">On a phone, Take photo opens the camera.</small>
+                </div>
+              </div>
+            </div>
+            <div class="wide"><button class="btn btn-green" id="nm-add" type="submit">Add nominee</button></div>
+          </form>
+          <ul class="nl" id="nom-list"></ul>
+        </div>
+      </div>
+      <div class="stack">
+        <div class="box">
+          <h2>Live count</h2>
+          <p class="sub">Only organizers see this until you reveal the winners.</p>
+          <div class="turnout"><b id="turnout">0</b><span class="muted">ballots cast</span></div>
+          <div class="tally" id="tally"></div>
+        </div>
+        <div class="box">
+          <h2>Voter link</h2>
+          <p class="sub">Share this with guests, or put it in a QR code on the tables.</p>
+          <div class="linkbox"><code id="voter-url"></code><button class="btn btn-sm" type="button" id="copy-url">Copy</button></div>
+        </div>
+        <div class="box">
+          <h2>Event name</h2>
+          <form id="ev-form" class="inline">
+            <label class="f">Shown above the headline<input type="text" id="ev-name" maxlength="70"></label>
+            <button class="btn btn-sm" type="submit">Save</button>
+          </form>
+        </div>
+        <div class="box">
+          <h2>Admin PIN</h2>
+          <form id="pin-form" class="inline">
+            <label class="f">New PIN (6+ characters)<input type="password" id="new-pin" minlength="6" autocomplete="new-password" required></label>
+            <button class="btn btn-sm" type="submit">Change PIN</button>
+          </form>
+        </div>
+        <div class="box danger-zone" id="reset-box"></div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="stage" id="stage" hidden></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/common.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>
