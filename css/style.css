@@ -97,10 +97,11 @@ svg.crown{width:1em;height:1em;flex:none}
 .empty{border:1px dashed var(--line-2);border-radius:var(--r);padding:28px 20px;color:var(--muted);text-align:center}
 
 .nom{position:relative;display:grid;gap:10px;align-content:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 10px 14px;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s, transform .15s, box-shadow .15s;min-width:0}
-.nom:hover:not(:disabled){border-color:var(--line-2);transform:translateY(-2px)}
-.nom:disabled{cursor:default}
+.nom:hover{border-color:var(--line-2);transform:translateY(-2px)}
+.nom:active{transform:translateY(0) scale(.985)}
 .nom.dim{opacity:.5}
-.nom[aria-pressed="true"]{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 14px 34px -16px rgba(220,181,99,.65);opacity:1}
+.nom.dim:hover{opacity:.8}
+.nom.chosen{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold),0 14px 34px -16px rgba(220,181,99,.65);opacity:1}
 .ph{aspect-ratio:4/5;max-width:100%;border-radius:10px;overflow:hidden;background:linear-gradient(160deg,var(--panel-2),#0b1109);display:grid;place-items:center;position:relative}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .mono{font-family:var(--display);font-style:italic;font-size:2.6rem;color:var(--green-hi);letter-spacing:.02em}
@@ -209,6 +210,24 @@ label.btn{cursor:pointer}
 
 /* overlays */
 .modal{position:fixed;inset:0;z-index:40;background:rgba(4,6,3,.78);display:grid;place-items:center;padding:16px}
+/* nominee profile */
+.profile-card{position:relative;width:min(420px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:22px;display:grid;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
+.profile-photo{height:min(52dvh,480px);background:linear-gradient(160deg,var(--panel-2),#0b1109)}
+.profile-photo .ph{width:100%;height:100%;aspect-ratio:auto;border-radius:0}
+.profile-photo .mono{font-size:clamp(4rem,18vw,6.5rem)}
+.profile-x,.profile-nav{position:absolute;display:grid;place-items:center;border:1px solid rgba(238,241,231,.18);background:rgba(9,12,8,.62);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:var(--text);cursor:pointer;font:inherit;line-height:1}
+.profile-x{top:12px;right:12px;width:38px;height:38px;border-radius:50%;font-size:1.5rem}
+.profile-nav{top:calc(min(52dvh,480px) / 2 - 22px);width:40px;height:44px;border-radius:12px;font-size:1.8rem}
+.profile-nav.prev{left:12px}.profile-nav.next{right:12px}
+.profile-nav:disabled{opacity:0;pointer-events:none}
+.profile-x:focus-visible,.profile-nav:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.profile-body{padding:18px 22px 22px;display:grid;gap:10px}
+.profile-cat{display:flex;align-items:center;gap:8px;color:var(--gold);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+.profile-name{font-family:var(--display);font-weight:600;font-size:clamp(1.8rem,7vw,2.4rem);line-height:1.05;margin:0;overflow-wrap:anywhere}
+.profile-meta{color:var(--muted);font-size:.92rem}
+.profile-meta:empty{display:none}
+.profile-body .actions{margin-top:6px}
+.profile-body .actions .btn{flex:1 1 auto}
 .modal-card{width:min(440px,100%);background:var(--panel);border:1px solid var(--line-2);border-radius:20px;padding:24px;display:grid;gap:16px}
 .modal-card h3{font-family:var(--display);font-size:1.7rem;font-weight:500;margin:0}
 .modal-picks{display:grid;gap:10px}

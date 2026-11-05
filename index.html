@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..800;1,6..96,400..700&family=Jost:wght@400;500;600&display=swap">
-<link rel="stylesheet" href="css/style.css?v=202611051031">
+<link rel="stylesheet" href="css/style.css?v=202611051112">
 </head>
 <body>
 <div class="splash" id="splash" role="status" aria-live="polite" aria-label="Opening the ballot box">
@@ -73,6 +73,21 @@
   </div>
 </div>
 
+<div class="modal" id="profile" hidden role="dialog" aria-modal="true" aria-labelledby="pf-name">
+  <div class="profile-card">
+    <div class="profile-photo" id="pf-photo"></div>
+    <button class="profile-x" id="pf-close" type="button" aria-label="Close">&times;</button>
+    <button class="profile-nav prev" id="pf-prev" type="button" aria-label="Previous nominee">&#8249;</button>
+    <button class="profile-nav next" id="pf-next" type="button" aria-label="Next nominee">&#8250;</button>
+    <div class="profile-body">
+      <div class="profile-cat" id="pf-cat"></div>
+      <h3 class="profile-name" id="pf-name"></h3>
+      <div class="profile-meta" id="pf-meta"></div>
+      <div class="actions" id="pf-actions"></div>
+    </div>
+  </div>
+</div>
+
 <div class="modal" id="confirm" hidden role="dialog" aria-modal="true" aria-labelledby="cf-t">
   <div class="modal-card">
     <h3 id="cf-t">Cast your ballot?</h3>
@@ -88,9 +103,9 @@
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="js/config.js?v=202611051031"></script>
-<script src="js/common.js?v=202611051031"></script>
-<script src="js/vote.js?v=202611051031"></script>
-<script type="module" src="js/crown.js?v=202611051031"></script>
+<script src="js/config.js?v=202611051112"></script>
+<script src="js/common.js?v=202611051112"></script>
+<script src="js/vote.js?v=202611051112"></script>
+<script type="module" src="js/crown.js?v=202611051112"></script>
 </body>
 </html>

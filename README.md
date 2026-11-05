@@ -13,6 +13,7 @@ Guests don't need an account. The organizer page asks for the **admin PIN**. Ask
 
 ## How voting works
 
+- **Tap any nominee** to open their profile with a large photo. Swipe or use the arrows to browse the category. While voting is open, **Pick for King/Queen** in the profile adds them to the ballot, then **Cast ballot** at the bottom sends it.
 - **One vote per phone.** Each browser gets a random device ID on first visit, and the database accepts one ballot per ID. Someone could vote again from a second browser or a private window, so it's meant for a friendly party vote, not a secure election.
 - **Nobody sees the count until the reveal.** Guests only see their own pick. The live count is on the organizer page only.
 - **Everything updates live.** When an organizer opens voting or reveals winners, every open voter page updates by itself within a few seconds.

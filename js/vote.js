@@ -14,7 +14,7 @@
     } catch (e) { return make(); }
   })();
 
-  const S = { pick: { king: null, queen: null }, myVote: null, myLoaded: false, busy: false };
+  const S = { pick: { king: null, queen: null }, myVote: null, myLoaded: false, busy: false, view: null, returnFocus: null };
 
   async function loadMyVote() {
     try {
@@ -36,7 +36,7 @@
     $("#ev-eyebrow").textContent = eventName();
     $("#splash-ev").textContent = eventName();
     maybeEndSplash();
-    renderNotice(); renderResults(); renderBallot(); renderCastbar();
+    renderNotice(); renderResults(); renderBallot(); renderCastbar(); renderProfile();
   }
 
   function renderNotice() {
@@ -103,11 +103,11 @@
           const chosen = myPick === n.id;
           const btn = h("button", {
             type: "button",
-            class: "nom" + (myPick && !chosen && !selectable ? " dim" : ""),
-            "aria-pressed": chosen ? "true" : "false",
-            "aria-label": `${n.name}${n.unit ? ", " + n.unit : ""}${selectable ? ". Vote for " + c.label : ""}`,
-            disabled: selectable ? null : true,
-            onclick: () => { S.pick[c.key] = S.pick[c.key] === n.id ? null : n.id; render(); }
+            class: "nom" + (chosen ? " chosen" : "") + (myPick && !chosen && !selectable ? " dim" : ""),
+            "aria-haspopup": "dialog",
+            "aria-label": `${n.name}, ${c.label} nominee${chosen ? (mine ? ", your vote" : ", your pick") : ""}. Open profile`,
+            "data-id": n.id,
+            onclick: e => openProfile(n.id, e.currentTarget)
           }, photo(n), h("div", { class: "nom-name", text: n.name }), n.unit ? h("div", { class: "unit", text: n.unit }) : null);
           if (chosen) btn.append(h("span", { class: "seal" }, crown(), mine ? "Your vote" : "Your pick"));
           grid.append(btn);
@@ -134,6 +134,89 @@
     $("#cast-btn").disabled = !(S.pick.king && S.pick.queen) || S.busy;
     $("#cf-go").disabled = S.busy;
   }
+
+  // ---------- nominee profile ----------
+  function openProfile(id, from) {
+    S.view = id; S.returnFocus = from || null;
+    $("#profile").hidden = false;
+    renderProfile();
+    const primary = $("#pf-actions .btn-gold");
+    (primary || $("#pf-close")).focus();
+  }
+  function closeProfile() {
+    if ($("#profile").hidden) return;
+    $("#profile").hidden = true; S.view = null;
+    const back = S.returnFocus && S.returnFocus.dataset ? document.querySelector(`.nom[data-id="${S.returnFocus.dataset.id}"]`) : null;
+    if (back) back.focus();
+  }
+  function step(dir) {
+    const n = nomById(S.view); if (!n) return;
+    const list = byCat(n.category), i = list.findIndex(x => x.id === n.id);
+    const next = list[i + dir]; if (!next) return;
+    S.view = next.id; renderProfile();
+  }
+  function renderProfile() {
+    const box = $("#profile");
+    if (box.hidden) return;
+    const n = nomById(S.view);
+    if (!n || status() === "revealed") { closeProfile(); return; }
+    const c = CATS.find(x => x.key === n.category);
+    const list = byCat(n.category), i = list.findIndex(x => x.id === n.id);
+    const st = status(), mine = S.myVote;
+    const selectable = st === "open" && S.myLoaded && !mine;
+    const picked = S.pick[c.key] === n.id, voted = mine && mine[c.key + "_id"] === n.id;
+
+    $("#pf-photo").replaceChildren(photo(n));
+    const cat = $("#pf-cat"); cat.replaceChildren(crown(), `Nominee for ${c.title}`);
+    $("#pf-name").textContent = n.name;
+    $("#pf-meta").textContent = list.length > 1 ? `${i + 1} of ${list.length} ${c.label} nominees` : "";
+    $("#pf-prev").disabled = i <= 0;
+    $("#pf-next").disabled = i >= list.length - 1;
+
+    const acts = $("#pf-actions"); acts.replaceChildren();
+    if (selectable) {
+      if (picked) {
+        acts.append(
+          h("button", { type: "button", class: "btn", onclick: () => { S.pick[c.key] = null; render(); } }, "Remove pick"),
+          h("button", { type: "button", class: "btn btn-gold", onclick: () => { closeProfile(); } }, "Done"));
+      } else {
+        acts.append(h("button", { type: "button", class: "btn btn-gold", onclick: () => {
+          S.pick[c.key] = n.id; closeProfile(); render();
+          const other = CATS.find(x => x.key !== c.key);
+          toast(S.pick[other.key] ? `${n.name} picked. Tap Cast ballot when you're ready.` : `${n.name} picked for ${c.label}. Now pick a ${other.label}.`);
+        } }, crown(), `Pick for ${c.label}`));
+      }
+    } else {
+      let note = "";
+      if (voted) note = `You voted for ${n.name} as ${c.label}.`;
+      else if (mine) note = "You've already cast your ballot from this phone.";
+      else if (st === "setup") note = "Voting opens soon. You can pick once it opens.";
+      else if (st === "closed") note = "Voting is closed.";
+      if (note) acts.append(h("p", { class: "muted", style: "margin:0;flex-basis:100%;font-size:.92rem", text: note }));
+      acts.append(h("button", { type: "button", class: "btn", onclick: closeProfile }, "Close"));
+    }
+  }
+  $("#pf-close").addEventListener("click", closeProfile);
+  $("#pf-prev").addEventListener("click", () => step(-1));
+  $("#pf-next").addEventListener("click", () => step(1));
+  $("#profile").addEventListener("click", e => { if (e.target === e.currentTarget) closeProfile(); });
+  document.addEventListener("keydown", e => {
+    if ($("#profile").hidden) return;
+    if (e.key === "Escape") closeProfile();
+    else if (e.key === "ArrowLeft") step(-1);
+    else if (e.key === "ArrowRight") step(1);
+  });
+  // Swipe left/right on the photo to browse nominees.
+  (() => {
+    let x0 = null;
+    const el = $("#pf-photo");
+    el.addEventListener("touchstart", e => { x0 = e.touches[0].clientX; }, { passive: true });
+    el.addEventListener("touchend", e => {
+      if (x0 == null) return;
+      const dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) step(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  })();
 
   async function cast() {
     if (S.busy) return;
