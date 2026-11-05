@@ -39,6 +39,7 @@ After 20 wrong PINs within 5 minutes, unlocking is blocked for 5 minutes.
 | `js/config.js` | Supabase URL, public anon key and default event name |
 | `js/common.js` | Shared helpers, live data loading, photo resizing |
 | `js/vote.js` | Voter page logic |
+| `js/crown.js` | Three.js faceted glass crown in the voter page hero (blue-tinted, light-splitting, slowly turning) |
 | `js/admin.js` | Organizer page logic |
 | `assets/` | BAHAMA logo |
 | `supabase/*.sql` | Database tables and functions, exactly as applied |
