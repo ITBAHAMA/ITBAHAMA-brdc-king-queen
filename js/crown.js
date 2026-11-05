@@ -1,6 +1,6 @@
 // Faceted glass crown for the voter page hero.
 // Refracts a hand-built studio environment, splits light into a spectrum along facet edges
-// (more dispersion at grazing angles), carries a blue tint, and turns slowly.
+// (more dispersion at grazing angles), carries a green tint, and turns slowly.
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.min.js";
 
 const host = document.getElementById("hero-crown");
@@ -21,14 +21,14 @@ function start() {
   host.appendChild(renderer.domElement);
   renderer.domElement.setAttribute("aria-hidden", "true");
 
-  // ---------- environment: dark blue studio with bright softboxes and party lights ----------
+  // ---------- environment: dark green studio with bright softboxes and party lights ----------
   const env = new THREE.Scene();
   env.add(new THREE.Mesh(
     new THREE.SphereGeometry(40, 48, 24),
     new THREE.ShaderMaterial({
       side: THREE.BackSide, depthWrite: false,
       vertexShader: "varying vec3 vDir; void main(){ vDir = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: "varying vec3 vDir; void main(){ float h = vDir.y; vec3 c = mix(vec3(0.008,0.014,0.035), vec3(0.06,0.12,0.32), smoothstep(-0.3,1.0,h)); c += vec3(0.02,0.05,0.12) * pow(1.0-abs(h), 6.0); gl_FragColor = vec4(c,1.0); }"
+      fragmentShader: "varying vec3 vDir; void main(){ float h = vDir.y; vec3 c = mix(vec3(0.008,0.02,0.008), vec3(0.07,0.24,0.06), smoothstep(-0.3,1.0,h)); c += vec3(0.04,0.12,0.03) * pow(1.0-abs(h), 6.0); gl_FragColor = vec4(c,1.0); }"
     })
   ));
   const panel = (w, h, rgb, x, y, z) => {
@@ -36,14 +36,14 @@ function start() {
     m.position.set(x, y, z); m.lookAt(0, 0, 0); env.add(m);
   };
   panel(7, 7, [4.0, 4.2, 4.6], 0, 11, 1);                // overhead softbox
-  panel(1.4, 12, [2.6, 3.0, 3.8], -9, 1, 3);             // cool strip, left
+  panel(1.4, 12, [2.8, 3.6, 2.8], -9, 1, 3);             // soft green-white strip, left
   panel(1.0, 12, [3.4, 3.4, 3.4], 9, 0, -2);             // white strip, right
   panel(12, 1.1, [3.2, 2.2, 0.9], 0, -1.5, -10);         // warm gold bar behind (ties to the site's gold)
-  panel(9, 1.4, [0.5, 1.2, 3.6], 0, -3.5, 9);            // blue floor bounce, front
-  panel(1.0, 7, [1.2, 2.0, 4.0], 7, 4, 7);               // blue kicker
+  panel(9, 1.4, [0.8, 3.4, 0.6], 0, -3.5, 9);            // green floor bounce, front
+  panel(1.0, 7, [1.6, 4.0, 1.4], 7, 4, 7);               // green kicker
   for (let i = 0; i < 18; i++) {                         // ring of small party lights
     const a = (i / 18) * Math.PI * 2;
-    panel(0.45, 0.45, i % 3 === 0 ? [5, 4.2, 2.4] : [4.5, 4.8, 5.5], Math.cos(a) * 11, 5 + Math.sin(i * 1.7) * 1.5, Math.sin(a) * 11);
+    panel(0.45, 0.45, i % 3 === 0 ? [5, 4.2, 2.4] : [4.8, 5.4, 4.6], Math.cos(a) * 11, 5 + Math.sin(i * 1.7) * 1.5, Math.sin(a) * 11);
   }
   const cubeRT = new THREE.WebGLCubeRenderTarget(512, { type: THREE.HalfFloatType, generateMipmaps: true, minFilter: THREE.LinearMipmapLinearFilter });
   const cubeCam = new THREE.CubeCamera(0.1, 100, cubeRT);
@@ -101,7 +101,7 @@ function start() {
         vec3 refl = textureCube(uEnv, reflect(I, N)).rgb;
         vec3 col = mix(refr, refl, fres);
         vec3 L = normalize(vec3(-0.35, 0.9, 0.55));
-        col += pow(max(dot(reflect(I, N), L), 0.0), 140.0) * 4.0 * mix(vec3(0.75,0.85,1.0), vec3(1.0), fres);
+        col += pow(max(dot(reflect(I, N), L), 0.0), 140.0) * 4.0 * mix(vec3(0.82,1.0,0.8), vec3(1.0), fres);
         col = aces(col * uExposure);
         gl_FragColor = vec4(pow(col, vec3(1.0 / 2.2)), 1.0);
       }`
@@ -145,9 +145,9 @@ function start() {
   }
 
   const crown = new THREE.Group();
-  crown.add(new THREE.Mesh(crownGeometry(), glass([0.55, 0.76, 1.0], 1.75, 0.16)));
+  crown.add(new THREE.Mesh(crownGeometry(), glass([0.5, 1.0, 0.45], 1.75, 0.16)));
 
-  const gemMat = glass([0.32, 0.56, 1.0], 2.15, 0.24);
+  const gemMat = glass([0.3, 0.9, 0.32], 2.15, 0.24);
   const tipGeo = new THREE.IcosahedronGeometry(0.085, 0);
   const bandGeo = new THREE.OctahedronGeometry(0.12, 0);
   for (let p = 0; p < 6; p++) {

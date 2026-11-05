@@ -68,10 +68,10 @@ svg.crown{width:1em;height:1em;flex:none}
 .hero-crown{position:relative;width:min(100%,440px);max-width:100%;aspect-ratio:1;justify-self:center}
 @media (min-width:900px){.hero-crown{justify-self:end;margin-block:-30px}}
 @media (max-width:899px){.hero-crown{order:-1;width:min(66vw,280px);margin:-12px 0 -26px}}
-.hero-crown::before{content:"";position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle at 50% 55%, rgba(84,140,255,.26), rgba(84,140,255,.08) 45%, transparent 68%);pointer-events:none}
+.hero-crown::before{content:"";position:absolute;inset:8%;border-radius:50%;background:radial-gradient(circle at 50% 55%, rgba(110,200,70,.24), rgba(110,200,70,.07) 45%, transparent 68%);pointer-events:none}
 .hero-crown canvas{position:relative;display:block;width:100%;height:100%;opacity:0;transition:opacity .9s ease}
 .hero-crown.live canvas{opacity:1}
-.crown-fallback{position:absolute;inset:26%;width:48%;height:48%;opacity:.85;filter:drop-shadow(0 10px 30px rgba(84,140,255,.45));transition:opacity .6s ease}
+.crown-fallback{position:absolute;inset:26%;width:48%;height:48%;opacity:.85;filter:drop-shadow(0 10px 30px rgba(110,200,70,.4));transition:opacity .6s ease}
 .hero-crown.live .crown-fallback{opacity:0}
 .hero h1{font-family:var(--display);font-style:italic;font-weight:500;font-size:clamp(2.6rem, 7.2vw, 5.2rem);line-height:.98;margin:0;letter-spacing:-.01em}
 .hero h1 em{font-style:italic;color:var(--gold)}
