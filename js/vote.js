@@ -101,16 +101,19 @@
         for (const n of list) {
           const myPick = mine ? mine[c.key + "_id"] : S.pick[c.key];
           const chosen = myPick === n.id;
-          const btn = h("button", {
-            type: "button",
+          const ph = photo(n);
+          withEye(ph, n);
+          const card = h("div", {
             class: "nom" + (chosen ? " chosen" : "") + (myPick && !chosen && !selectable ? " dim" : ""),
-            "aria-haspopup": "dialog",
+            "data-id": n.id
+          }, ph, h("div", { class: "nom-name", text: n.name }), n.unit ? h("div", { class: "unit", text: n.unit }) : null);
+          if (chosen) card.append(h("span", { class: "seal" }, crown(), mine ? "Your vote" : "Your pick"));
+          card.append(h("button", {
+            type: "button", class: "nom-hit", "aria-haspopup": "dialog",
             "aria-label": `${n.name}, ${c.label} nominee${chosen ? (mine ? ", your vote" : ", your pick") : ""}. Open profile`,
-            "data-id": n.id,
             onclick: e => openProfile(n.id, e.currentTarget)
-          }, photo(n), h("div", { class: "nom-name", text: n.name }), n.unit ? h("div", { class: "unit", text: n.unit }) : null);
-          if (chosen) btn.append(h("span", { class: "seal" }, crown(), mine ? "Your vote" : "Your pick"));
-          grid.append(btn);
+          }));
+          grid.append(card);
         }
         col.append(grid);
       }
@@ -135,6 +138,42 @@
     $("#cf-go").disabled = S.busy;
   }
 
+  // ---------- full photo viewer (eye button) ----------
+  const EYE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3.1" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const hasPhoto = n => typeof n.photo === "string" && n.photo.startsWith("data:image/");
+  function withEye(ph, n) {
+    if (!hasPhoto(n)) return ph;
+    const t = document.createElement("template"); t.innerHTML = EYE;
+    ph.append(h("button", {
+      type: "button", class: "eye-btn", "aria-label": `View ${n.name}'s photo`,
+      onclick: e => { e.stopPropagation(); openPhoto(n, e.currentTarget); }
+    }, t.content.firstChild));
+    return ph;
+  }
+  let lbReturn = null;
+  function openPhoto(n, from) {
+    lbReturn = from || null;
+    $("#lb-img").src = n.photo;
+    $("#lb-img").alt = `Photo of ${n.name}`;
+    $("#lb-cap").textContent = n.name;
+    $("#lightbox").hidden = false;
+    $("#lb-close").focus();
+  }
+  function closePhoto() {
+    if ($("#lightbox").hidden) return;
+    $("#lightbox").hidden = true;
+    $("#lb-img").removeAttribute("src");
+    if (lbReturn && document.contains(lbReturn)) lbReturn.focus();
+  }
+  $("#lb-close").addEventListener("click", closePhoto);
+  $("#lightbox").addEventListener("click", e => { if (e.target.id !== "lb-close") closePhoto(); });
+  // Capture phase so Escape/arrows close the photo first instead of the profile underneath.
+  document.addEventListener("keydown", e => {
+    if ($("#lightbox").hidden) return;
+    if (e.key === "Escape") closePhoto();
+    if (["Escape", "ArrowLeft", "ArrowRight"].includes(e.key)) { e.stopImmediatePropagation(); e.preventDefault(); }
+  }, true);
+
   // ---------- nominee profile ----------
   function openProfile(id, from) {
     S.view = id; S.returnFocus = from || null;
@@ -146,7 +185,8 @@
   function closeProfile() {
     if ($("#profile").hidden) return;
     $("#profile").hidden = true; S.view = null;
-    const back = S.returnFocus && S.returnFocus.dataset ? document.querySelector(`.nom[data-id="${S.returnFocus.dataset.id}"]`) : null;
+    const id = S.returnFocus && S.returnFocus.closest ? (S.returnFocus.closest(".nom") || {}).dataset : null;
+    const back = id && id.id ? document.querySelector(`.nom[data-id="${id.id}"] .nom-hit`) : null;
     if (back) back.focus();
   }
   function step(dir) {
@@ -166,7 +206,7 @@
     const selectable = st === "open" && S.myLoaded && !mine;
     const picked = S.pick[c.key] === n.id, voted = mine && mine[c.key + "_id"] === n.id;
 
-    $("#pf-photo").replaceChildren(photo(n));
+    $("#pf-photo").replaceChildren(withEye(photo(n), n));
     const cat = $("#pf-cat"); cat.replaceChildren(crown(), `Nominee for ${c.title}`);
     $("#pf-name").textContent = n.name;
     $("#pf-meta").textContent = list.length > 1 ? `${i + 1} of ${list.length} ${c.label} nominees` : "";

@@ -96,7 +96,16 @@ svg.crown{width:1em;height:1em;flex:none}
 @media (max-width:440px){.grid{grid-template-columns:1fr 1fr;gap:10px}}
 .empty{border:1px dashed var(--line-2);border-radius:var(--r);padding:28px 20px;color:var(--muted);text-align:center}
 
-.nom{position:relative;display:grid;gap:10px;align-content:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 10px 14px;color:inherit;font:inherit;cursor:pointer;transition:border-color .15s, transform .15s, box-shadow .15s;min-width:0}
+.nom{position:relative;display:grid;gap:10px;align-content:start;text-align:left;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:10px 10px 14px;color:inherit;font:inherit;transition:border-color .15s, transform .15s, box-shadow .15s;min-width:0}
+/* the whole card is one big button laid over the content; the eye button sits above it */
+.nom-hit{position:absolute;inset:0;z-index:1;margin:0;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.nom-hit:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.eye-btn{position:absolute;left:8px;bottom:8px;z-index:2;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;padding:0;cursor:pointer;color:var(--text);background:rgba(9,12,8,.6);border:1px solid rgba(238,241,231,.24);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:background .15s,color .15s,transform .15s;-webkit-tap-highlight-color:transparent}
+.eye-btn svg{width:19px;height:19px}
+.eye-btn:hover{background:var(--gold);color:var(--gold-ink);border-color:var(--gold)}
+.eye-btn:active{transform:scale(.92)}
+.eye-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.profile-photo .eye-btn{left:12px;bottom:12px;width:42px;height:42px}
 .nom:hover{border-color:var(--line-2);transform:translateY(-2px)}
 .nom:active{transform:translateY(0) scale(.985)}
 .nom.dim{opacity:.5}
@@ -128,7 +137,7 @@ svg.crown{width:1em;height:1em;flex:none}
 .btn-danger{background:transparent;border-color:var(--danger);color:var(--danger)}
 .btn-sm{padding:7px 14px;font-size:.82rem}
 .btn:disabled,.btn[aria-disabled="true"]{opacity:.42;cursor:not-allowed;pointer-events:none}
-.btn:focus-visible,.nom:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.btn:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .actions{display:flex;gap:10px;flex-wrap:wrap}
 .f{display:grid;gap:6px;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
 input[type=text],input[type=password],select{font:inherit;font-size:1rem;letter-spacing:normal;text-transform:none;color:var(--text);background:var(--ink);border:1px solid var(--line-2);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
@@ -210,6 +219,17 @@ label.btn{cursor:pointer}
 
 /* overlays */
 .modal{position:fixed;inset:0;z-index:40;background:rgba(4,6,3,.78);display:grid;place-items:center;padding:16px}
+/* full photo viewer */
+.lightbox{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(3,5,3,.94);
+  padding:calc(56px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  animation:lb-in .22s ease both}
+.lb-x{position:fixed;top:calc(12px + env(safe-area-inset-top, 0px));right:calc(12px + env(safe-area-inset-right, 0px));z-index:1}
+.lb-fig{margin:0;display:grid;justify-items:center;gap:14px;max-width:100%;min-width:0}
+.lb-fig img{display:block;max-width:min(100%,720px);max-height:calc(100dvh - 160px);width:auto;height:auto;object-fit:contain;border-radius:14px;box-shadow:0 30px 80px -20px rgba(0,0,0,.8);animation:lb-zoom .28s cubic-bezier(.2,.8,.2,1) both}
+.lb-fig figcaption{font-family:var(--display);font-style:italic;font-size:clamp(1.3rem,5vw,1.8rem);text-align:center;overflow-wrap:anywhere}
+@keyframes lb-in{from{opacity:0}to{opacity:1}}
+@keyframes lb-zoom{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+
 /* nominee profile */
 .profile-card{position:relative;width:min(420px,100%);max-height:calc(100dvh - 32px);overflow:auto;background:var(--panel);border:1px solid var(--line-2);border-radius:22px;display:grid;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)}
 .profile-photo{height:min(52dvh,480px);background:linear-gradient(160deg,var(--panel-2),#0b1109)}
