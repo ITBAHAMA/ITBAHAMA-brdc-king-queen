@@ -218,7 +218,7 @@
       stg.append(h("h2", { text: "Voting is open" }), h("div", { class: "big", text: count }), h("p", { class: "lede", text: "ballots cast so far" }),
         h("p", { class: "lede", text: "Scan the QR code or open the voter link on your phone to vote." }));
     } else if (st === "closed") {
-      stg.append(h("h2", { text: "The ballots are in" }), h("div", { class: "big", text: count }), h("p", { class: "lede", text: "ballots counted. Who will wear the crowns?" }));
+      stg.append(h("h2", { text: "The ballots are in" }), h("div", { class: "big", text: count }), h("p", { class: "lede", text: `${count === 1 ? "ballot" : "ballots"} counted. Who will wear the crowns?` }));
     } else {
       stg.append(h("h2", { text: "Who wears the crown?" }), h("p", { class: "lede", text: "Voting for King and Queen of the Night opens soon." }));
     }
@@ -282,7 +282,7 @@
 
   window.KQ.onChange(render);
   render();
-  window.KQ.start();
+  window.KQ.start({ fast: true });
   const saved = loadPin();
   if (saved) unlock(saved).catch(() => lock()); else $("#pin").focus();
 })();

@@ -104,55 +104,106 @@
   }
 
   // ---------- live store ----------
-  const store = { settings: null, nominees: [], results: null, loaded: false, offline: false };
+  // Phones poll one tiny call (kq_state). When nothing changed it returns only {rev}, a few bytes.
+  // Photos are downloaded separately, only when new or changed, and kept on the phone.
+  // No live-update (Realtime) connections are used, so the shared connection pool is left alone.
+  const store = { settings: null, nominees: [], results: null, loaded: false, offline: false, rev: null };
   const listeners = [];
   const emit = () => listeners.forEach(fn => { try { fn(store); } catch (e) { console.error(e); } });
 
-  async function fetchSettings() {
-    const { data, error } = await sb.from("kq_settings").select("status,event_name").eq("id", 1).maybeSingle();
-    if (error) throw error;
-    store.settings = data;
+  // photo cache: memory first, then this phone's storage, then the network
+  const PHOTO_PREFIX = "kq_ph:";
+  const mem = new Map();
+  const pkey = (id, v) => PHOTO_PREFIX + id + ":" + v;
+  function cachedPhoto(id, v) {
+    const k = pkey(id, v);
+    if (mem.has(k)) return mem.get(k);
+    try { const x = localStorage.getItem(k); if (x) { mem.set(k, x); return x; } } catch (e) {}
+    return null;
   }
-  async function fetchNominees() {
-    const { data, error } = await sb.from("kq_nominees").select("id,name,category,unit,photo,created_at").order("created_at");
-    if (error) throw error;
-    store.nominees = (data || []).filter(n => n.category === "king" || n.category === "queen");
+  function keepPhoto(id, v, data) {
+    const k = pkey(id, v); mem.set(k, data);
+    try { localStorage.setItem(k, data); } catch (e) { /* storage full or blocked: memory cache still works */ }
   }
-  async function fetchResults() {
-    const { data, error } = await sb.from("kq_results").select("data").eq("id", 1).maybeSingle();
-    if (error) throw error;
-    store.results = data ? data.data : null;
-  }
-  const fetchers = { kq_settings: fetchSettings, kq_nominees: fetchNominees, kq_results: fetchResults };
-
-  let pending = new Set(), timer = null;
-  function queue(table) {
-    pending.add(table);
-    clearTimeout(timer);
-    timer = setTimeout(async () => {
-      const tables = [...pending]; pending = new Set();
-      try { await Promise.all(tables.map(t => fetchers[t]())); store.offline = false; }
-      catch (e) { store.offline = true; }
-      emit();
-    }, 250);
-  }
-  const refreshAll = () => Object.keys(fetchers).forEach(queue);
-
-  async function start() {
+  function prunePhotos(keep) {
     try {
-      await Promise.all([fetchSettings(), fetchNominees(), fetchResults()]);
-      store.offline = false;
-    } catch (e) { store.offline = true; }
-    store.loaded = true;
-    emit();
-    sb.channel("kq-public")
-      .on("postgres_changes", { event: "*", schema: "public", table: "kq_settings" }, () => queue("kq_settings"))
-      .on("postgres_changes", { event: "*", schema: "public", table: "kq_nominees" }, () => queue("kq_nominees"))
-      .on("postgres_changes", { event: "*", schema: "public", table: "kq_results" }, () => queue("kq_results"))
-      .subscribe();
-    // Safety net if live updates drop: light refresh of status and results, full refresh on return to the tab.
-    setInterval(() => { if (!document.hidden) { queue("kq_settings"); queue("kq_results"); } }, 15000);
-    document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshAll(); });
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(PHOTO_PREFIX) && !keep.has(k)) localStorage.removeItem(k);
+      }
+    } catch (e) {}
+  }
+  let photoFetching = false;
+  async function fillPhotos() {
+    if (photoFetching) return;
+    const missing = store.nominees.filter(n => n.photo_v && !cachedPhoto(n.id, n.photo_v));
+    if (!missing.length) return;
+    photoFetching = true;
+    try {
+      for (let i = 0; i < missing.length; i += 8) {           // small batches: first photos show sooner
+        const ids = missing.slice(i, i + 8).map(n => n.id);
+        const { data, error } = await sb.from("kq_nominees").select("id,photo,photo_v").in("id", ids);
+        if (error) throw error;
+        for (const row of data || []) if (row.photo && row.photo_v) keepPhoto(row.id, row.photo_v, row.photo);
+        applyPhotos(); emit();
+      }
+    } catch (e) { /* try again on the next poll */ }
+    finally { photoFetching = false; }
+  }
+  function applyPhotos() {
+    for (const n of store.nominees) n.photo = n.photo_v ? cachedPhoto(n.id, n.photo_v) : null;
+  }
+
+  let opts = { fast: false }, timer = null, failures = 0, inflight = null;
+  function interval() {
+    if (store.offline) return Math.min(30000, 3000 * Math.pow(2, Math.min(failures, 4)));
+    if (opts.fast) return 3000;
+    const st = store.settings && store.settings.status;
+    return st === "closed" ? 3000 : st === "open" ? 6000 : st === "revealed" ? 20000 : 12000;
+  }
+  async function poll() {
+    if (inflight) return inflight;
+    inflight = (async () => {
+      try {
+        const data = await rpc("kq_state", { p_rev: store.rev });
+        failures = 0;
+        const wasOffline = store.offline; store.offline = false;
+        if (data && data.status) {
+          store.rev = data.rev;
+          store.settings = { status: data.status, event_name: data.event_name };
+          store.nominees = (data.nominees || []).filter(n => n.category === "king" || n.category === "queen");
+          store.results = data.results || null;
+          applyPhotos();
+          prunePhotos(new Set(store.nominees.filter(n => n.photo_v).map(n => pkey(n.id, n.photo_v))));
+          store.loaded = true; emit();
+          fillPhotos();
+        } else if (wasOffline || !store.loaded) { store.loaded = true; emit(); }
+      } catch (e) {
+        failures++;
+        if (!store.offline || !store.loaded) { store.offline = true; store.loaded = true; emit(); }
+      } finally { inflight = null; }
+    })();
+    return inflight;
+  }
+  function schedule() {
+    clearTimeout(timer);
+    if (document.hidden) return;                        // phones in pockets stop polling
+    timer = setTimeout(async () => { await poll(); schedule(); }, interval());
+  }
+  // Ask for fresh data soon (after an organizer action). Several calls in a row collapse into one.
+  let soon = null;
+  function queue() { clearTimeout(soon); soon = setTimeout(async () => { await poll(); schedule(); }, 150); }
+  function refreshAll() { store.rev = null; queue(); }
+
+  async function start(o) {
+    opts = Object.assign(opts, o || {});
+    await poll();
+    schedule();
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) clearTimeout(timer);
+      else { poll().then(schedule); }
+    });
+    window.addEventListener("online", () => { poll().then(schedule); });
   }
 
   const status = () => { const s = store.settings && store.settings.status; return STATUSES.includes(s) ? s : "setup"; };

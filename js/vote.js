@@ -15,6 +15,12 @@
   })();
 
   const S = { pick: { king: null, queen: null }, myVote: null, myLoaded: false, busy: false, view: null, returnFocus: null };
+  // A category counts as voted only while that nominee still exists; if an organizer removes them,
+  // the phone may pick again in that category (the server only fills in the missing half).
+  const votedFor = key => { const id = S.myVote && S.myVote[key + "_id"]; return id && nomById(id) ? id : null; };
+  const ballotDone = () => CATS.every(c => votedFor(c.key));
+  const canPick = key => status() === "open" && S.myLoaded && !votedFor(key);
+  const choiceFor = key => votedFor(key) || S.pick[key];
 
   async function loadMyVote() {
     try {
@@ -44,10 +50,13 @@
     const st = status(), mine = S.myVote;
     if (!store.loaded) { box.append(notice("Opening the ballot box…", null)); return; }
     if (store.offline && !store.settings) { box.append(notice("Can't reach the ballot box", "Check your internet connection. This page updates on its own once it connects.")); return; }
-    const picked = mine ? `${(nomById(mine.king_id) || {}).name || "a nominee"} for King and ${(nomById(mine.queen_id) || {}).name || "a nominee"} for Queen` : "";
+    const done = ballotDone();
+    const picked = done ? `${nomById(mine.king_id).name} for King and ${nomById(mine.queen_id).name} for Queen` : "";
+    const missing = CATS.filter(c => !votedFor(c.key)).map(c => c.label);
     if (st === "setup") box.append(notice("Voting opens soon", "The organizers are finalizing the nominees. Keep this page open; the ballot appears here automatically."));
-    else if (st === "open" && mine) box.append(notice("Your ballot is in", `You voted ${picked}. Winners are crowned at the end of the night.`, "voted"));
-    else if (st === "closed") box.append(notice("Voting is closed", mine ? `Thanks for voting. You picked ${picked}. Watch the stage for the reveal.` : "Ballots are being counted. Watch the stage for the reveal."));
+    else if (st === "open" && done) box.append(notice("Your ballot is in", `You voted ${picked}. Winners are crowned at the end of the night.`, "voted"));
+    else if (st === "open" && mine && S.myLoaded) box.append(notice("Finish your ballot", `A nominee you voted for is no longer on the ballot. Pick a new ${missing.join(" and ")}, then tap Cast ballot.`));
+    else if (st === "closed") box.append(notice("Voting is closed", done ? `Thanks for voting. You picked ${picked}. Watch the stage for the reveal.` : "Ballots are being counted. Watch the stage for the reveal."));
   }
 
   function renderResults() {
@@ -56,7 +65,7 @@
     sec.hidden = false; sec.replaceChildren();
     sec.append(h("div", { class: "results-head" },
       h("h2", { text: "The crowns go to…" }),
-      h("span", { class: "muted", text: `${Number(r.total) || 0} ballots counted` })));
+      h("span", { class: "muted", text: (n => `${n} ${n === 1 ? "ballot" : "ballots"} counted`)(Number(r.total) || 0) })));
     const wrap = h("div", { class: "winners" });
     for (const c of CATS) {
       const rows = Array.isArray(r[c.key]) ? r[c.key] : [];
@@ -87,9 +96,8 @@
     const st = status();
     if (!store.loaded || st === "revealed" || (!store.settings && store.offline)) { sec.hidden = true; return; }
     sec.hidden = false;
-    const mine = S.myVote;
-    const selectable = st === "open" && S.myLoaded && !mine;
     for (const c of CATS) {
+      const selectable = canPick(c.key), locked = !!votedFor(c.key);
       const list = byCat(c.key);
       const col = h("div", { class: "col" },
         h("div", { class: "col-head" },
@@ -99,7 +107,7 @@
       else {
         const grid = h("div", { class: "grid" });
         for (const n of list) {
-          const myPick = mine ? mine[c.key + "_id"] : S.pick[c.key];
+          const myPick = choiceFor(c.key);
           const chosen = myPick === n.id;
           const ph = photo(n);
           withEye(ph, n);
@@ -107,10 +115,10 @@
             class: "nom" + (chosen ? " chosen" : "") + (myPick && !chosen && !selectable ? " dim" : ""),
             "data-id": n.id
           }, ph, h("div", { class: "nom-name", text: n.name }), n.unit ? h("div", { class: "unit", text: n.unit }) : null);
-          if (chosen) card.append(h("span", { class: "seal" }, crown(), mine ? "Your vote" : "Your pick"));
+          if (chosen) card.append(h("span", { class: "seal" }, crown(), locked ? "Your vote" : "Your pick"));
           card.append(h("button", {
             type: "button", class: "nom-hit", "aria-haspopup": "dialog",
-            "aria-label": `${n.name}, ${c.label} nominee${chosen ? (mine ? ", your vote" : ", your pick") : ""}. Open profile`,
+            "aria-label": `${n.name}, ${c.label} nominee${chosen ? (locked ? ", your vote" : ", your pick") : ""}. Open profile`,
             onclick: e => openProfile(n.id, e.currentTarget)
           }));
           grid.append(card);
@@ -123,18 +131,18 @@
 
   function renderCastbar() {
     for (const c of CATS) if (S.pick[c.key] && !nomById(S.pick[c.key])) S.pick[c.key] = null;
-    const show = store.loaded && status() === "open" && S.myLoaded && !S.myVote && byCat("king").length && byCat("queen").length;
+    const show = store.loaded && status() === "open" && S.myLoaded && !ballotDone() && byCat("king").length && byCat("queen").length;
     $("#castbar").hidden = !show;
     document.body.classList.toggle("has-bar", !!show);
     if (!show) { $("#confirm").hidden = true; return; }
     const picks = $("#picks"); picks.replaceChildren();
     const cf = $("#cf-picks"); cf.replaceChildren();
     for (const c of CATS) {
-      const n = nomById(S.pick[c.key]);
+      const n = nomById(choiceFor(c.key));
       picks.append(h("div", null, h("small", { text: c.label }), n ? h("b", { text: n.name }) : h("b", { class: "none", text: "Not picked yet" })));
       cf.append(h("div", null, h("span", { text: c.label }), h("b", { text: n ? n.name : "—" })));
     }
-    $("#cast-btn").disabled = !(S.pick.king && S.pick.queen) || S.busy;
+    $("#cast-btn").disabled = !CATS.every(c => nomById(choiceFor(c.key))) || S.busy;
     $("#cf-go").disabled = S.busy;
   }
 
@@ -203,8 +211,8 @@
     const c = CATS.find(x => x.key === n.category);
     const list = byCat(n.category), i = list.findIndex(x => x.id === n.id);
     const st = status(), mine = S.myVote;
-    const selectable = st === "open" && S.myLoaded && !mine;
-    const picked = S.pick[c.key] === n.id, voted = mine && mine[c.key + "_id"] === n.id;
+    const selectable = canPick(c.key);
+    const picked = S.pick[c.key] === n.id, voted = votedFor(c.key) === n.id;
 
     $("#pf-photo").replaceChildren(withEye(photo(n), n));
     const cat = $("#pf-cat"); cat.replaceChildren(crown(), `Nominee for ${c.title}`);
@@ -229,7 +237,7 @@
     } else {
       let note = "";
       if (voted) note = `You voted for ${n.name} as ${c.label}.`;
-      else if (mine) note = "You've already cast your ballot from this phone.";
+      else if (votedFor(c.key)) note = `You've already voted for a ${c.label} from this phone.`;
       else if (st === "setup") note = "Voting opens soon. You can pick once it opens.";
       else if (st === "closed") note = "Voting is closed.";
       if (note) acts.append(h("p", { class: "muted", style: "margin:0;flex-basis:100%;font-size:.92rem", text: note }));
@@ -262,8 +270,9 @@
     if (S.busy) return;
     S.busy = true; render();
     try {
-      const res = await rpc("kq_cast_vote", { p_device: DEVICE, p_king: S.pick.king, p_queen: S.pick.queen });
-      if (res && res.ok) { toast("Ballot cast. Thanks for voting!"); S.myVote = { king_id: S.pick.king, queen_id: S.pick.queen }; }
+      const king = choiceFor("king"), queen = choiceFor("queen");
+      const res = await rpc("kq_cast_vote", { p_device: DEVICE, p_king: king, p_queen: queen });
+      if (res && res.ok) { toast("Ballot cast. Thanks for voting!"); S.myVote = { king_id: king, queen_id: queen }; S.pick = { king: null, queen: null }; }
       else { toast(errText(res)); if (res && res.error === "already_voted") await loadMyVote(); }
     } catch (e) { toast(errText(e)); }
     finally { S.busy = false; $("#confirm").hidden = true; render(); }
@@ -301,7 +310,8 @@
   setTimeout(endSplash, MAX_MS);
 
   window.KQ.onChange(() => {
-    if (!S.myLoaded || (status() === "setup" && S.myVote)) loadMyVote(); // a reset clears ballots
+    const stale = S.myVote && CATS.some(c => S.myVote[c.key + "_id"] && !nomById(S.myVote[c.key + "_id"]));
+    if (!S.myLoaded || (status() === "setup" && S.myVote) || stale) loadMyVote(); // reset or removed nominee
     render();
   });
   render();
