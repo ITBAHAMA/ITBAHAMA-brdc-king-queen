@@ -41,6 +41,7 @@ After 10 wrong PINs within 5 minutes from the same connection, that connection i
 | `js/config.js` | Supabase URL, public anon key and default event name |
 | `js/common.js` | Shared helpers, live data loading, photo resizing |
 | `js/vote.js` | Voter page logic |
+| `js/dots.js` | 60–80 floating dots behind the voter page hero: far dots small and slow, near dots bigger and faster, wrapping at the top. Plain 2D canvas, site colours, pauses when hidden, still frame with reduced motion |
 | `js/crown.js` | Three.js faceted glass crown in the voter page hero (green-tinted, light-splitting, slowly turning) |
 | `js/admin.js` | Organizer page logic |
 | `assets/` | BAHAMA logo |
